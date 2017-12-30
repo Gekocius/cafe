@@ -23,14 +23,28 @@ import javafx.stage.Stage;
  * @author David Fuchs
  */
 public class Main extends Application {
+    private final Scene loginScreen;
+    private final Scene homeScreen;
+    private final Scene registrationScreen;
+    
     private final Map<String,TextField> homeScreenTextFields = new HashMap<>();
+    private final Map<String,TextField> registrationScreenTextFields = new HashMap<>();
+    private final Map<String,TextField> loginScreenTextFields = new HashMap<>();
+    
+    private Stage stage;
+    
+    public Main(){
+        createTextFields();
+        homeScreen = createHomeScreen();
+        loginScreen = createLoginScreen();
+        registrationScreen = createRegistrationScreen();
+    }
     
     @Override
     public void start(Stage primaryStage) {
-        createTextFields();
-        Scene scene = new Scene(createHomeScreen(), 640, 480);
+        stage = primaryStage;
+        stage.setScene(homeScreen);
         primaryStage.setTitle("Cafe");
-        primaryStage.setScene(scene);
         primaryStage.show();
     }
 
@@ -42,9 +56,15 @@ public class Main extends Application {
         homeScreenTextFields.put("coffee", new TextField());
         homeScreenTextFields.put("special offer", new TextField());
         homeScreenTextFields.put("minimal rating", new TextField());
+        registrationScreenTextFields.put("email", new TextField());
+        registrationScreenTextFields.put("name", new TextField());
+        registrationScreenTextFields.put("surname", new TextField());
+        registrationScreenTextFields.put("password", new TextField());
+        loginScreenTextFields.put("email", new TextField());
+        loginScreenTextFields.put("password", new TextField());
     }
     
-    private BorderPane createHomeScreen(){
+    private Scene createHomeScreen(){
         BorderPane root = new BorderPane();
         VBox home = new VBox();
         HBox top = new HBox();
@@ -52,10 +72,10 @@ public class Main extends Application {
                 login = new Button("Log in"),
                 search = new Button("Request search results");
         register.setOnAction((ActionEvent) -> {
-            
+            stage.setScene(registrationScreen);
         });
         login.setOnAction((ActionEvent) -> {
-            
+            stage.setScene(loginScreen);
         });
         search.setOnAction((ActionEvent) -> {
             
@@ -79,7 +99,45 @@ public class Main extends Application {
         root.setCenter(home);
         root.setTop(top);
         root.setBottom(search);
-        return root;
+        return new Scene(root,640,480);
+    }
+    
+    private Scene createLoginScreen(){
+        BorderPane root = new BorderPane();
+        VBox center = new VBox();
+        Button  login = new Button("Log in");
+        login.setOnAction((ActionEvent) -> {
+            
+        });
+        FlowPane email = new FlowPane();
+        email.getChildren().addAll(new Label("E-mail address"),loginScreenTextFields.get("email"));
+        FlowPane password = new FlowPane();
+        password.getChildren().addAll(new Label("Password"),loginScreenTextFields.get("password"));
+        center.getChildren().addAll(email,password);
+        root.setCenter(center);
+        root.setBottom(login);
+        return new Scene(root,640,240);
+    }
+    
+    private Scene createRegistrationScreen(){
+        BorderPane root = new BorderPane();
+        VBox center = new VBox();
+        Button  register = new Button("Register");
+        register.setOnAction((ActionEvent) -> {
+            
+        });
+        FlowPane email = new FlowPane();
+        email.getChildren().addAll(new Label("E-mail address"),registrationScreenTextFields.get("email"));
+        FlowPane name = new FlowPane();
+        name.getChildren().addAll(new Label("Name"),registrationScreenTextFields.get("name"));
+        FlowPane surname = new FlowPane();
+        surname.getChildren().addAll(new Label("Surname"),registrationScreenTextFields.get("surname"));
+        FlowPane password = new FlowPane();
+        password.getChildren().addAll(new Label("Password"),registrationScreenTextFields.get("password"));
+        center.getChildren().addAll(email,name,surname,password);
+        root.setCenter(center);
+        root.setBottom(register);
+        return new Scene(root,640,240);
     }
 
     /**
