@@ -5,10 +5,13 @@
  */
 package cafe;
 
+import cafe.logic.InformationSystem;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import javafx.application.Application;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
@@ -17,12 +20,14 @@ import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import util.Utilities;
 
 /**
  *
  * @author David Fuchs
  */
 public class Main extends Application {
+    private final InformationSystem system = new InformationSystem();
     private final Scene loginScreen;
     private final Scene homeScreen;
     private final Scene registrationScreen;
@@ -124,7 +129,17 @@ public class Main extends Application {
         VBox center = new VBox();
         Button  register = new Button("Register");
         register.setOnAction((ActionEvent) -> {
-            
+            if(!validEmail(registrationScreenTextFields.get("email").getText().toLowerCase(Locale.ROOT)))
+                Utilities.messageBox("That is not a valid email address.", "Invalid email address",
+                                     "Invalid email address", Alert.AlertType.ERROR);
+            else if(system.createUser(registrationScreenTextFields.get("email").getText().toLowerCase(Locale.ROOT),
+                            registrationScreenTextFields.get("name").getText(),
+                            registrationScreenTextFields.get("surname").getText(),
+                            registrationScreenTextFields.get("password").getText()))
+                stage.setScene(homeScreen);
+            else
+                Utilities.messageBox("Account with your email address already exists.", "Account creation error",
+                                     "Account creation error", Alert.AlertType.ERROR);
         });
         FlowPane email = new FlowPane();
         email.getChildren().addAll(new Label("E-mail address"),registrationScreenTextFields.get("email"));
@@ -138,6 +153,10 @@ public class Main extends Application {
         root.setCenter(center);
         root.setBottom(register);
         return new Scene(root,640,240);
+    }
+    
+    private boolean validEmail(String email){
+        return email.contains("@");
     }
 
     /**

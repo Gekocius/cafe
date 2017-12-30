@@ -18,7 +18,7 @@ public class User {
 
 	private Collection<Rating> ratings;
 
-	private System system;
+	private InformationSystem system;
         
         public User(String email,String name,String surname,String password){
             throw new UnsupportedOperationException();
