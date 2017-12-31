@@ -3,6 +3,7 @@ package cafe.logic;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.List;
@@ -20,6 +21,12 @@ public class InformationSystem {
     private static final String SQL_CHECK_ACCOUNT = "select email\n"
             + "from " + DB + ".users\n"
             + "where email like ?;";
+    private static final String SQL_LOGIN = "select email,user_name,user_surname,user_password,admin\n"
+            + "from " + DB + ".users\n"
+            + "where email like ? and user_password like ?;";
+    
+    
+    private User loggedInUser = null;
     
     private Collection<Cafe> cafes;
 
@@ -36,12 +43,12 @@ public class InformationSystem {
             connection = DriverManager.getConnection(DB_CONNECTION, DB_USER, DB_PASSWORD);
             if(!accountExists(statement, connection, email)){
                 statement = connection.prepareStatement(SQL_CREATE_USER);
-                statement.setString(1, name);
-                statement.setString(2, surname);
-                statement.setString(3, email);
-                statement.setString(4, password);
-                statement.setBoolean(5, false);
-                System.out.println(statement);
+                int i = 1;
+                statement.setString(i++, name);
+                statement.setString(i++, surname);
+                statement.setString(i++, email);
+                statement.setString(i++, password);
+                statement.setBoolean(i++, false);
                 int updatedRecords = statement.executeUpdate();
                 if(updatedRecords == 1)
                     result = true;
@@ -63,5 +70,47 @@ public class InformationSystem {
             statement = connection.prepareStatement(SQL_CHECK_ACCOUNT);
             statement.setString(1, email);
             return statement.executeQuery().next();
+    }
+    
+    public boolean login(String email,String password){
+        Connection connection;
+        PreparedStatement statement = null;
+        boolean result = false;
+        try {
+            Class.forName(DB_DRIVER);
+            connection = DriverManager.getConnection(DB_CONNECTION, DB_USER, DB_PASSWORD);
+            statement = connection.prepareStatement(SQL_LOGIN);
+            int i = 1;
+            statement.setString(i++, email);
+            statement.setString(i++, password);
+            ResultSet rs = statement.executeQuery();
+            if(rs.next()){
+                if(rs.getBoolean(5))
+                    loggedInUser = new Admin(rs.getString(1),rs.getString(2),rs.getString(3),rs.getString(4));
+                else
+                    loggedInUser = new User(rs.getString(1),rs.getString(2),rs.getString(3),rs.getString(4));
+                result = true;
+            }
+            statement.close();
+            connection.close();
+        }
+        catch(SQLException | ClassNotFoundException ex){
+            ex.printStackTrace();
+        }
+        finally{
+            return result;
+        }
+    }
+    
+    public boolean loggedIn(){
+        return loggedInUser != null;
+    }
+    
+    public boolean loggedInAsAdmin(){
+        return loggedInUser != null && loggedInUser instanceof Admin;
+    }
+    
+    public void logout(){
+        loggedInUser = null;
     }
 }

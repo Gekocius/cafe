@@ -30,9 +30,11 @@ public class Main extends Application {
     private final InformationSystem system = new InformationSystem();
     private final Scene loginScreen;
     private final Scene homeScreen;
+    private final Scene homeScreenUser;
     private final Scene registrationScreen;
     
     private final Map<String,TextField> homeScreenTextFields = new HashMap<>();
+    private final Map<String,TextField> homeScreenUserTextFields = new HashMap<>();
     private final Map<String,TextField> registrationScreenTextFields = new HashMap<>();
     private final Map<String,TextField> loginScreenTextFields = new HashMap<>();
     
@@ -41,6 +43,7 @@ public class Main extends Application {
     public Main(){
         createTextFields();
         homeScreen = createHomeScreen();
+        homeScreenUser = createHomeScreenUser();
         loginScreen = createLoginScreen();
         registrationScreen = createRegistrationScreen();
     }
@@ -61,6 +64,13 @@ public class Main extends Application {
         homeScreenTextFields.put("coffee", new TextField());
         homeScreenTextFields.put("special offer", new TextField());
         homeScreenTextFields.put("minimal rating", new TextField());
+        homeScreenUserTextFields.put("cafe name", new TextField());
+        homeScreenUserTextFields.put("country", new TextField());
+        homeScreenUserTextFields.put("city", new TextField());
+        homeScreenUserTextFields.put("street", new TextField());
+        homeScreenUserTextFields.put("coffee", new TextField());
+        homeScreenUserTextFields.put("special offer", new TextField());
+        homeScreenUserTextFields.put("minimal rating", new TextField());
         registrationScreenTextFields.put("email", new TextField());
         registrationScreenTextFields.put("name", new TextField());
         registrationScreenTextFields.put("surname", new TextField());
@@ -107,12 +117,58 @@ public class Main extends Application {
         return new Scene(root,640,480);
     }
     
+    private Scene createHomeScreenUser(){
+        BorderPane root = new BorderPane();
+        VBox home = new VBox();
+        HBox top = new HBox();
+        Button  editProfile = new Button("Edit profile"),
+                logout = new Button("Log out"),
+                search = new Button("Request search results");
+        editProfile.setOnAction((ActionEvent) -> {
+            
+        });
+        logout.setOnAction((ActionEvent) -> {
+            system.logout();
+            stage.setScene(homeScreen);
+            homeScreenUserTextFields.values().forEach(textField -> {textField.clear();});
+        });
+        search.setOnAction((ActionEvent) -> {
+            
+        });
+        top.getChildren().addAll(homeScreenUserTextFields.get("cafe name"),editProfile,logout);
+        FlowPane country = new FlowPane();
+        country.getChildren().addAll(new Label("Country"),homeScreenUserTextFields.get("country"));
+        FlowPane city = new FlowPane();
+        city.getChildren().addAll(new Label("City"),homeScreenUserTextFields.get("city"));
+        FlowPane street = new FlowPane();
+        street.getChildren().addAll(new Label("Street"),homeScreenUserTextFields.get("street"));
+        FlowPane coffee = new FlowPane();
+        coffee.getChildren().addAll(new Label("Coffee"),homeScreenUserTextFields.get("coffee"));
+        FlowPane specialOffer = new FlowPane();
+        specialOffer.getChildren().addAll(new Label("Special offer"),homeScreenUserTextFields.get("special offer"));
+        FlowPane rating = new FlowPane();
+        rating.getChildren().addAll(new Label("Minimal rating"),homeScreenUserTextFields.get("minimal rating"));
+        home.getChildren().addAll(new Label("Search by address"),country,city,street,
+                                  new Label("Search by products"),coffee,specialOffer,
+                                  new Label("Search by rating"),rating);
+        root.setCenter(home);
+        root.setTop(top);
+        root.setBottom(search);
+        return new Scene(root,640,480);
+    }
+    
     private Scene createLoginScreen(){
         BorderPane root = new BorderPane();
         VBox center = new VBox();
         Button  login = new Button("Log in");
         login.setOnAction((ActionEvent) -> {
-            
+            if(system.login(loginScreenTextFields.get("email").getText().toLowerCase(Locale.ROOT),
+                         loginScreenTextFields.get("password").getText())){
+                stage.setScene(homeScreenUser);
+                loginScreenTextFields.values().forEach(textField -> {textField.clear();});
+            }
+            else
+                Utilities.messageBox("Login wasn't successful.", "Failed login", "Failed login", Alert.AlertType.ERROR);
         });
         FlowPane email = new FlowPane();
         email.getChildren().addAll(new Label("E-mail address"),loginScreenTextFields.get("email"));
@@ -135,8 +191,12 @@ public class Main extends Application {
             else if(system.createUser(registrationScreenTextFields.get("email").getText().toLowerCase(Locale.ROOT),
                             registrationScreenTextFields.get("name").getText(),
                             registrationScreenTextFields.get("surname").getText(),
-                            registrationScreenTextFields.get("password").getText()))
+                            registrationScreenTextFields.get("password").getText())){
                 stage.setScene(homeScreen);
+                registrationScreenTextFields.values().forEach(textField -> {
+                    textField.clear();
+                });
+            }
             else
                 Utilities.messageBox("Account with your email address already exists.", "Account creation error",
                                      "Account creation error", Alert.AlertType.ERROR);
