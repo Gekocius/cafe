@@ -31,10 +31,12 @@ public class Main extends Application {
     private final Scene loginScreen;
     private final Scene homeScreen;
     private final Scene homeScreenUser;
+    private final Scene homeScreenAdmin;
     private final Scene registrationScreen;
     
     private final Map<String,TextField> homeScreenTextFields = new HashMap<>();
     private final Map<String,TextField> homeScreenUserTextFields = new HashMap<>();
+    private final Map<String,TextField> homeScreenAdminTextFields = new HashMap<>();
     private final Map<String,TextField> registrationScreenTextFields = new HashMap<>();
     private final Map<String,TextField> loginScreenTextFields = new HashMap<>();
     
@@ -44,6 +46,7 @@ public class Main extends Application {
         createTextFields();
         homeScreen = createHomeScreen();
         homeScreenUser = createHomeScreenUser();
+        homeScreenAdmin = createHomeScreenAdmin();
         loginScreen = createLoginScreen();
         registrationScreen = createRegistrationScreen();
     }
@@ -71,6 +74,13 @@ public class Main extends Application {
         homeScreenUserTextFields.put("coffee", new TextField());
         homeScreenUserTextFields.put("special offer", new TextField());
         homeScreenUserTextFields.put("minimal rating", new TextField());
+        homeScreenAdminTextFields.put("cafe name", new TextField());
+        homeScreenAdminTextFields.put("country", new TextField());
+        homeScreenAdminTextFields.put("city", new TextField());
+        homeScreenAdminTextFields.put("street", new TextField());
+        homeScreenAdminTextFields.put("coffee", new TextField());
+        homeScreenAdminTextFields.put("special offer", new TextField());
+        homeScreenAdminTextFields.put("minimal rating", new TextField());
         registrationScreenTextFields.put("email", new TextField());
         registrationScreenTextFields.put("name", new TextField());
         registrationScreenTextFields.put("surname", new TextField());
@@ -157,6 +167,46 @@ public class Main extends Application {
         return new Scene(root,640,480);
     }
     
+    private Scene createHomeScreenAdmin(){
+        BorderPane root = new BorderPane();
+        VBox home = new VBox();
+        HBox top = new HBox();
+        Button  editUser = new Button("Edit user"),
+                logout = new Button("Log out"),
+                search = new Button("Request search results");
+        editUser.setOnAction((ActionEvent) -> {
+            
+        });
+        logout.setOnAction((ActionEvent) -> {
+            system.logout();
+            stage.setScene(homeScreen);
+            homeScreenAdminTextFields.values().forEach(textField -> {textField.clear();});
+        });
+        search.setOnAction((ActionEvent) -> {
+            
+        });
+        top.getChildren().addAll(homeScreenAdminTextFields.get("cafe name"),editUser,logout);
+        FlowPane country = new FlowPane();
+        country.getChildren().addAll(new Label("Country"),homeScreenAdminTextFields.get("country"));
+        FlowPane city = new FlowPane();
+        city.getChildren().addAll(new Label("City"),homeScreenAdminTextFields.get("city"));
+        FlowPane street = new FlowPane();
+        street.getChildren().addAll(new Label("Street"),homeScreenAdminTextFields.get("street"));
+        FlowPane coffee = new FlowPane();
+        coffee.getChildren().addAll(new Label("Coffee"),homeScreenAdminTextFields.get("coffee"));
+        FlowPane specialOffer = new FlowPane();
+        specialOffer.getChildren().addAll(new Label("Special offer"),homeScreenAdminTextFields.get("special offer"));
+        FlowPane rating = new FlowPane();
+        rating.getChildren().addAll(new Label("Minimal rating"),homeScreenAdminTextFields.get("minimal rating"));
+        home.getChildren().addAll(new Label("Search by address"),country,city,street,
+                                  new Label("Search by products"),coffee,specialOffer,
+                                  new Label("Search by rating"),rating);
+        root.setCenter(home);
+        root.setTop(top);
+        root.setBottom(search);
+        return new Scene(root,640,480);
+    }
+    
     private Scene createLoginScreen(){
         BorderPane root = new BorderPane();
         VBox center = new VBox();
@@ -164,7 +214,10 @@ public class Main extends Application {
         login.setOnAction((ActionEvent) -> {
             if(system.login(loginScreenTextFields.get("email").getText().toLowerCase(Locale.ROOT),
                          loginScreenTextFields.get("password").getText())){
-                stage.setScene(homeScreenUser);
+                if(system.loggedInAsAdmin())
+                    stage.setScene(homeScreenAdmin);
+                else
+                    stage.setScene(homeScreenUser);
                 loginScreenTextFields.values().forEach(textField -> {textField.clear();});
             }
             else
