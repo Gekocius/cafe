@@ -266,7 +266,7 @@ public class Main extends Application {
         
         levyGrid.add(new Label("E-mail address"),0,0,1,1);
          levyGrid.add(new Label("Name"),0,1,1,1);
-                  levyGrid.add(new Label("Surname"),0,2,1,1);
+          levyGrid.add(new Label("Surname"),0,2,1,1);
                            levyGrid.add(new Label("Password"),0,3,1,1);
                            
                            
@@ -281,10 +281,10 @@ public class Main extends Application {
                               pravyGrid.add(register,1,7,1,1);
                            
                     
-                       
+    pravyGrid.setHgap(10);                    
    pravyGrid.setVgap(5);
        
-   pravyGrid.setHgap(10);
+  
  
       levy.getChildren().add(levyGrid);
       pravy.getChildren().add(pravyGrid);
