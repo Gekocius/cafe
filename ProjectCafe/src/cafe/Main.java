@@ -10,11 +10,13 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import javafx.application.Application;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
@@ -35,12 +37,14 @@ public class Main extends Application {
     private final Scene homeScreenUser;
     private final Scene homeScreenAdmin;
     private final Scene registrationScreen;
+       private final Scene searchScreen;
     
     private final Map<String,TextField> homeScreenTextFields = new HashMap<>();
     private final Map<String,TextField> homeScreenUserTextFields = new HashMap<>();
     private final Map<String,TextField> homeScreenAdminTextFields = new HashMap<>();
     private final Map<String,TextField> registrationScreenTextFields = new HashMap<>();
     private final Map<String,TextField> loginScreenTextFields = new HashMap<>();
+      private final Map<String,TextArea> searchScreenTextFields = new HashMap<>();
     
     private Stage stage;
     
@@ -51,6 +55,7 @@ public class Main extends Application {
         homeScreenAdmin = createHomeScreenAdmin();
         loginScreen = createLoginScreen();
         registrationScreen = createRegistrationScreen();
+        searchScreen =createSearchScreen();
     }
     
     @Override
@@ -89,6 +94,8 @@ public class Main extends Application {
         registrationScreenTextFields.put("password", new TextField());
         loginScreenTextFields.put("email", new TextField());
         loginScreenTextFields.put("password", new TextField());
+         searchScreenTextFields.put("search", new TextArea());
+        
     }
     
     private Scene createHomeScreen(){
@@ -105,7 +112,7 @@ public class Main extends Application {
             stage.setScene(loginScreen);
         });
         search.setOnAction((ActionEvent) -> {
-            
+             stage.setScene(searchScreen);
         });
         top.getChildren().addAll(homeScreenTextFields.get("cafe name"),register,login);
         FlowPane country = new FlowPane();
@@ -127,6 +134,27 @@ public class Main extends Application {
         root.setTop(top);
         root.setBottom(search);
         return new Scene(root,640,480);
+    }
+    
+    private Scene createSearchScreen(){
+    
+    
+      VBox root = new VBox();
+        root.setPadding(new Insets(10));
+        root.setSpacing(5);
+ 
+      
+       
+ searchScreenTextFields.get("search").setPrefHeight(600);
+      
+     
+     FlowPane searchR=new FlowPane();
+searchR.setAlignment(Pos.CENTER);
+searchR.getChildren().add(new Label("Found cafes"));
+        root.getChildren().addAll(searchR,  searchScreenTextFields.get("search"));
+         return new Scene(root,640,480);
+    
+    
     }
     
     private Scene createHomeScreenUser(){
