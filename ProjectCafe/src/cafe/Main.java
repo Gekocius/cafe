@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import javafx.application.Application;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
@@ -17,6 +18,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
@@ -235,8 +237,13 @@ public class Main extends Application {
     
     private Scene createRegistrationScreen(){
         BorderPane root = new BorderPane();
-        VBox center = new VBox();
+        VBox levy = new VBox();
+        VBox pravy = new VBox();
+        GridPane levyGrid=new GridPane();
+        GridPane pravyGrid=new GridPane();
+      
         Button  register = new Button("Register");
+        register.setPrefSize(600, 10);
         register.setOnAction((ActionEvent) -> {
             if(!validEmail(registrationScreenTextFields.get("email").getText().toLowerCase(Locale.ROOT)))
                 Utilities.messageBox("That is not a valid email address.", "Invalid email address",
@@ -254,18 +261,43 @@ public class Main extends Application {
                 Utilities.messageBox("Account with your email address already exists.", "Account creation error",
                                      "Account creation error", Alert.AlertType.ERROR);
         });
-        FlowPane email = new FlowPane();
-        email.getChildren().addAll(new Label("E-mail address"),registrationScreenTextFields.get("email"));
-        FlowPane name = new FlowPane();
-        name.getChildren().addAll(new Label("Name"),registrationScreenTextFields.get("name"));
-        FlowPane surname = new FlowPane();
-        surname.getChildren().addAll(new Label("Surname"),registrationScreenTextFields.get("surname"));
-        FlowPane password = new FlowPane();
-        password.getChildren().addAll(new Label("Password"),registrationScreenTextFields.get("password"));
-        center.getChildren().addAll(email,name,surname,password);
-        root.setCenter(center);
-        root.setBottom(register);
-        return new Scene(root,640,240);
+        
+        
+        
+        levyGrid.add(new Label("E-mail address"),0,0,1,1);
+         levyGrid.add(new Label("Name"),0,1,1,1);
+                  levyGrid.add(new Label("Surname"),0,2,1,1);
+                           levyGrid.add(new Label("Password"),0,3,1,1);
+                           
+                           
+   levyGrid.setVgap(15);
+       
+     
+                 registrationScreenTextFields.get("email").setPrefWidth(520);
+                           pravyGrid.add(registrationScreenTextFields.get("email"),1,0,1,1);
+                           pravyGrid.add(registrationScreenTextFields.get("name"),1,1,1,1);
+                             pravyGrid.add(registrationScreenTextFields.get("surname"),1,2,1,1);
+                              pravyGrid.add(registrationScreenTextFields.get("password"),1,3,1,1);
+                              pravyGrid.add(register,1,7,1,1);
+                           
+                    
+                       
+   pravyGrid.setVgap(5);
+       
+   pravyGrid.setHgap(10);
+ 
+      levy.getChildren().add(levyGrid);
+      pravy.getChildren().add(pravyGrid);
+      root.setLeft(levy);
+      root.setCenter(pravy);
+      root.setRight(new Label("     "));
+      root.setTop(new Label("\n"));
+    
+      
+        
+    
+       
+        return new Scene(root,640,200);
     }
     
     private boolean validEmail(String email){
