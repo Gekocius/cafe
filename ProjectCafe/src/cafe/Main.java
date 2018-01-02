@@ -17,6 +17,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
@@ -47,6 +48,8 @@ public class Main extends Application {
     private final Scene cafeDetailUser;
     private final Scene postComment;
     private final Scene addCafe;
+    private final Scene changeCafeDetail;
+    private final Scene findUser;
     
     
     private final Map<String,TextField> homeScreenTextFields = new HashMap<>();
@@ -58,6 +61,8 @@ public class Main extends Application {
     private final Map<String,TextArea> cafeDetailUserTextFields = new HashMap<>();
     private final Map<String,TextArea> postCommentTextFields = new HashMap<>();
     private final Map<String,TextField> addCafeTextFields = new HashMap<>();
+    private final Map<String,TextField> changeCafeDetailTextFields = new HashMap<>();
+    private final Map<String,TextField> findUserTextFields = new HashMap<>();
     
     private final ListView<String> searchResults = new ListView<>();
     
@@ -78,6 +83,8 @@ public class Main extends Application {
         cafeDetailUser = createCafeDetailUser();
         postComment = createPostComment();
         addCafe = createAddCafe();
+        changeCafeDetail = createChangeCafeDetail();
+        findUser = createFindUser();
     }
     
     @Override
@@ -133,7 +140,17 @@ public class Main extends Application {
         addCafeTextFields.put("add new kind", new TextField());
         addCafeTextFields.put("special offers", new TextField());
         addCafeTextFields.put("add new special", new TextField());
-        
+        changeCafeDetailTextFields.put("name", new TextField());
+        changeCafeDetailTextFields.put("country", new TextField());
+        changeCafeDetailTextFields.put("city", new TextField());
+        changeCafeDetailTextFields.put("street", new TextField());
+        changeCafeDetailTextFields.put("offered kinds", new TextField());
+        changeCafeDetailTextFields.put("add new kind", new TextField());
+        changeCafeDetailTextFields.put("special offers", new TextField());
+        changeCafeDetailTextFields.put("add new special", new TextField());
+        findUserTextFields.put("e-mail", new TextField());
+        findUserTextFields.put("name", new TextField());
+        findUserTextFields.put("surname", new TextField());
     }
     
     private Scene createHomeScreen(){
@@ -493,6 +510,100 @@ public class Main extends Application {
         root.setSpacing(5);
         return new Scene(root, 640,480);
     }
+    
+    
+    private Scene createChangeCafeDetail(){
+        VBox root = new VBox();
+        
+        HBox nameHBox = new HBox();
+        nameHBox.getChildren().addAll(new Label ("Name"), addCafeTextFields.get("name"));
+        nameHBox.setSpacing(110);
+        
+        CheckBox isActiveCheckBox = new CheckBox("Is this cafe active?");
+        isActiveCheckBox.setSelected(true);
+        isActiveCheckBox.setOnAction((ActionEvent) -> {
+        
+        });
+        
+        HBox locationHBox = new HBox();
+        VBox labelsLocationVBox = new VBox();
+        labelsLocationVBox.getChildren().addAll(new Label("Country"),new Label("City"), new Label("Street"));
+        labelsLocationVBox.setSpacing(10);
+        
+        VBox textFieldsVBox = new VBox();
+        textFieldsVBox.getChildren().addAll(addCafeTextFields.get("country"),addCafeTextFields.get("city"), 
+                                        addCafeTextFields.get("street"));
+        
+        locationHBox.getChildren().addAll(labelsLocationVBox, textFieldsVBox);
+        locationHBox.setSpacing(100);
+        
+        HBox offersHBox = new HBox();
+        VBox addKindsVBox = new VBox();
+        VBox addSpecialOfVBox = new VBox();
+        Button addNewKindButton = new Button("Add new kind of coffee");
+        Button addNewSpecialButton = new Button("Add new special offer");
+          
+        addNewKindButton.setOnAction((ActionEvent) -> {
+        
+        });
+        addNewSpecialButton.setOnAction((ActionEvent) -> {
+        
+        });
+            
+        addKindsVBox.getChildren().addAll(new Label("Offered kinds of coffee"), addCafeTextFields.get("offered kinds"),
+                new Label("Kind of coffee"), addCafeTextFields.get("add new kind"), addNewKindButton);
+        
+        addSpecialOfVBox.getChildren().addAll(new Label("Special offers"), addCafeTextFields.get("special offers"),
+                new Label("Special offer"), addCafeTextFields.get("add new special"), addNewSpecialButton);
+       
+        offersHBox.getChildren().addAll(addKindsVBox, addSpecialOfVBox);
+        offersHBox.setSpacing(150);
+        
+        Button registerButton = new Button("Change cafe detail");
+        registerButton.setPrefWidth(620);
+        registerButton.setPrefHeight(50);
+        
+        registerButton.setOnAction((ActionEvent) -> {
+        
+        });
+        root.getChildren().addAll(new Label("Change cafe detail"), isActiveCheckBox,nameHBox, new Label("Location"), 
+                locationHBox, offersHBox, 
+                registerButton);
+        root.setAlignment(Pos.TOP_CENTER);
+        root.setSpacing(5);
+        return new Scene(root, 640,480);
+ 
+    }
+    
+    private Scene createFindUser(){
+        VBox root = new VBox();
+        Button findUserButton = new Button("Find user");
+        findUserButton.setPrefWidth(620);
+        findUserButton.setPrefHeight(40);
+        
+        findUserButton.setOnAction((ActionEvent) -> {
+        
+        });
+        
+        HBox detailsHBox = new HBox();
+        detailsHBox.setSpacing(100);
+                
+        VBox textFieldsVBox = new VBox();
+        VBox labelsVBox = new VBox();
+        labelsVBox.getChildren().addAll(new Label("E-mail address"), new Label("Name"),
+                new Label("Surname"));
+        labelsVBox.setSpacing(10);
+        
+        textFieldsVBox.getChildren().addAll(findUserTextFields.get("e-mail"),findUserTextFields.get("name"),
+                findUserTextFields.get("surname"));
+        
+        detailsHBox.getChildren().addAll(labelsVBox, textFieldsVBox);
+        
+        root.getChildren().addAll(new Label("Find user"), detailsHBox, findUserButton);
+        root.setSpacing(5);
+        return new Scene(root, 640, 200);
+    }
+
     
     
     private boolean validEmail(String email){
