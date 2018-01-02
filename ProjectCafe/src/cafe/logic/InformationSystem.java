@@ -91,7 +91,7 @@ public class InformationSystem {
     
     public boolean login(String email,String password){
         Connection connection;
-        PreparedStatement statement = null;
+        PreparedStatement statement;
         boolean result = false;
         try {
             Class.forName(DB_DRIVER);
@@ -121,9 +121,10 @@ public class InformationSystem {
     
     public Collection<Cafe> search(String cafe_name,String country,String city,String street,
                                    boolean active,String coffee_name,String offer_name,double rating){
+        cafes.removeAll(cafes);
         Connection connection;
-        PreparedStatement statement = null;
-        ResultSet rs = null;
+        PreparedStatement statement;
+        ResultSet rs;
         try {
             Class.forName(DB_DRIVER);
             connection = DriverManager.getConnection(DB_CONNECTION, DB_USER, DB_PASSWORD);

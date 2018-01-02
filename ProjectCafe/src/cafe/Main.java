@@ -141,6 +141,7 @@ public class Main extends Application {
     }
 
     private void search(Map<String,TextField> textFields) {
+        searchResults.getItems().removeIf(filter -> {return true;});
         searchResultsComplete
                 = system.search(textFields.get("cafe name").getText(),
                         textFields.get("country").getText(),
