@@ -50,6 +50,9 @@ public class Main extends Application {
     private final Scene addCafe;
     private final Scene changeCafeDetail;
     private final Scene findUser;
+    private final Scene editUser;
+    private final Scene editUserAdmin;
+    
     
     
     private final Map<String,TextField> homeScreenTextFields = new HashMap<>();
@@ -63,6 +66,8 @@ public class Main extends Application {
     private final Map<String,TextField> addCafeTextFields = new HashMap<>();
     private final Map<String,TextField> changeCafeDetailTextFields = new HashMap<>();
     private final Map<String,TextField> findUserTextFields = new HashMap<>();
+    private final Map<String,TextField> editUserTextFields = new HashMap<>();
+    private final Map<String,TextField> editUserAdminTextFields = new HashMap<>();
     
     private final ListView<String> searchResults = new ListView<>();
     
@@ -85,6 +90,8 @@ public class Main extends Application {
         addCafe = createAddCafe();
         changeCafeDetail = createChangeCafeDetail();
         findUser = createFindUser();
+        editUser = createEditUser();
+        editUserAdmin = createEditUserAdmin();
     }
     
     @Override
@@ -151,6 +158,14 @@ public class Main extends Application {
         findUserTextFields.put("e-mail", new TextField());
         findUserTextFields.put("name", new TextField());
         findUserTextFields.put("surname", new TextField());
+        editUserTextFields.put("e-mail", new TextField());
+        editUserTextFields.put("name", new TextField());
+        editUserTextFields.put("surname", new TextField());
+        editUserTextFields.put("password", new TextField());
+        editUserAdminTextFields.put("e-mail", new TextField());
+        editUserAdminTextFields.put("name", new TextField());
+        editUserAdminTextFields.put("surname", new TextField());
+
     }
     
     private Scene createHomeScreen(){
@@ -604,6 +619,70 @@ public class Main extends Application {
         return new Scene(root, 640, 200);
     }
 
+    
+    
+    private Scene createEditUser(){
+        VBox root = new VBox();
+        Button editUserButton = new Button("Change your profile information");
+        editUserButton.setPrefWidth(620);
+        editUserButton.setPrefHeight(40);
+        
+        editUserButton.setOnAction((ActionEvent) -> {
+        
+        });
+        
+        HBox detailsHBox = new HBox();
+        detailsHBox.setSpacing(100);
+                
+        VBox textFieldsVBox = new VBox();
+        VBox labelsVBox = new VBox();
+        labelsVBox.getChildren().addAll(new Label("E-mail"), new Label("Name"),
+                new Label("Surname"), new Label("Password"));
+        labelsVBox.setSpacing(10);
+        
+        textFieldsVBox.getChildren().addAll(editUserTextFields.get("e-mail"),editUserTextFields.get("name"),
+                editUserTextFields.get("surname"), editUserTextFields.get("password"));
+        
+        detailsHBox.getChildren().addAll(labelsVBox, textFieldsVBox);
+        
+        root.getChildren().addAll(new Label("Change your profile information"), detailsHBox, editUserButton);
+        root.setSpacing(5);
+        return new Scene(root, 640, 200);
+    }
+    
+    private Scene createEditUserAdmin(){
+        VBox root = new VBox();
+        Button editUserButton = new Button("Change profile information");
+        editUserButton.setPrefWidth(620);
+        editUserButton.setPrefHeight(40);
+        
+        editUserButton.setOnAction((ActionEvent) -> {
+        
+        });
+        
+        HBox detailsHBox = new HBox();
+        detailsHBox.setSpacing(100);
+                
+        VBox textFieldsVBox = new VBox();
+        VBox labelsVBox = new VBox();
+        CheckBox banUserCheckBox = new CheckBox("Ban user");
+        
+        
+        labelsVBox.getChildren().addAll(new Label("E-mail"), new Label("Name"),
+                new Label("Surname"), banUserCheckBox);
+        labelsVBox.setSpacing(10);
+        
+        textFieldsVBox.getChildren().addAll(editUserAdminTextFields.get("e-mail"),editUserAdminTextFields.get("name"),
+                editUserAdminTextFields.get("surname"));
+        
+        detailsHBox.getChildren().addAll(labelsVBox, textFieldsVBox);
+        
+        root.getChildren().addAll(new Label("Change profile information"), detailsHBox, editUserButton);
+        root.setSpacing(5);
+        return new Scene(root, 640, 200);
+    
+    }
+    
     
     
     private boolean validEmail(String email){
