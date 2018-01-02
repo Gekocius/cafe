@@ -5,7 +5,9 @@
  */
 package cafe;
 
+import cafe.logic.Cafe;
 import cafe.logic.InformationSystem;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -16,7 +18,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.TextArea;
+import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
@@ -44,7 +46,10 @@ public class Main extends Application {
     private final Map<String,TextField> homeScreenAdminTextFields = new HashMap<>();
     private final Map<String,TextField> registrationScreenTextFields = new HashMap<>();
     private final Map<String,TextField> loginScreenTextFields = new HashMap<>();
-      private final Map<String,TextArea> searchScreenTextFields = new HashMap<>();
+    
+    private final ListView<String> searchResults = new ListView<>();
+    
+    private Collection<Cafe> searchResultsComplete = null;
     
     private Stage stage;
     
@@ -55,7 +60,7 @@ public class Main extends Application {
         homeScreenAdmin = createHomeScreenAdmin();
         loginScreen = createLoginScreen();
         registrationScreen = createRegistrationScreen();
-        searchScreen =createSearchScreen();
+        searchScreen = createSearchScreen();
     }
     
     @Override
@@ -94,7 +99,6 @@ public class Main extends Application {
         registrationScreenTextFields.put("password", new TextField());
         loginScreenTextFields.put("email", new TextField());
         loginScreenTextFields.put("password", new TextField());
-         searchScreenTextFields.put("search", new TextArea());
         
     }
     
@@ -112,7 +116,7 @@ public class Main extends Application {
             stage.setScene(loginScreen);
         });
         search.setOnAction((ActionEvent) -> {
-             stage.setScene(searchScreen);
+            search(homeScreenTextFields);
         });
         top.getChildren().addAll(homeScreenTextFields.get("cafe name"),register,login);
         FlowPane country = new FlowPane();
@@ -135,26 +139,33 @@ public class Main extends Application {
         root.setBottom(search);
         return new Scene(root,640,480);
     }
+
+    private void search(Map<String,TextField> textFields) {
+        searchResultsComplete
+                = system.search(textFields.get("cafe name").getText(),
+                        textFields.get("country").getText(),
+                        textFields.get("city").getText(),
+                        textFields.get("street").getText(),
+                        true,
+                        textFields.get("coffee").getText(),
+                        textFields.get("special offer").getText(),
+                        getMinimalRating());
+        searchResultsComplete.stream().map(cafe -> cafe.getName()).forEach(cafe_name -> {
+            searchResults.getItems().add(cafe_name);
+        });
+        stage.setScene(searchScreen);
+    }
     
     private Scene createSearchScreen(){
-    
-    
-      VBox root = new VBox();
+        VBox root = new VBox();
         root.setPadding(new Insets(10));
         root.setSpacing(5);
- 
-      
-       
- searchScreenTextFields.get("search").setPrefHeight(600);
-      
-     
-     FlowPane searchR=new FlowPane();
-searchR.setAlignment(Pos.CENTER);
-searchR.getChildren().add(new Label("Found cafes"));
-        root.getChildren().addAll(searchR,  searchScreenTextFields.get("search"));
-         return new Scene(root,640,480);
-    
-    
+        searchResults.setPrefHeight(600);
+        FlowPane searchResultPane=new FlowPane();
+        searchResultPane.setAlignment(Pos.CENTER);
+        searchResultPane.getChildren().add(new Label("Found cafes"));
+        root.getChildren().addAll(searchResultPane,  searchResults);
+        return new Scene(root,640,480);
     }
     
     private Scene createHomeScreenUser(){
@@ -173,7 +184,7 @@ searchR.getChildren().add(new Label("Found cafes"));
             homeScreenUserTextFields.values().forEach(textField -> {textField.clear();});
         });
         search.setOnAction((ActionEvent) -> {
-            
+            search(homeScreenUserTextFields);
         });
         top.getChildren().addAll(homeScreenUserTextFields.get("cafe name"),editProfile,logout);
         FlowPane country = new FlowPane();
@@ -213,7 +224,7 @@ searchR.getChildren().add(new Label("Found cafes"));
             homeScreenAdminTextFields.values().forEach(textField -> {textField.clear();});
         });
         search.setOnAction((ActionEvent) -> {
-            
+            search(homeScreenAdminTextFields);
         });
         top.getChildren().addAll(homeScreenAdminTextFields.get("cafe name"),editUser,logout);
         FlowPane country = new FlowPane();
@@ -265,11 +276,10 @@ searchR.getChildren().add(new Label("Found cafes"));
     
     private Scene createRegistrationScreen(){
         BorderPane root = new BorderPane();
-        VBox levy = new VBox();
-        VBox pravy = new VBox();
-        GridPane levyGrid=new GridPane();
-        GridPane pravyGrid=new GridPane();
-      
+        VBox left = new VBox();
+        VBox right = new VBox();
+        GridPane leftGrid=new GridPane();
+        GridPane rightGrid=new GridPane();
         Button  register = new Button("Register");
         register.setPrefSize(600, 10);
         register.setOnAction((ActionEvent) -> {
@@ -289,43 +299,26 @@ searchR.getChildren().add(new Label("Found cafes"));
                 Utilities.messageBox("Account with your email address already exists.", "Account creation error",
                                      "Account creation error", Alert.AlertType.ERROR);
         });
-        
-        
-        
-        levyGrid.add(new Label("E-mail address"),0,0,1,1);
-         levyGrid.add(new Label("Name"),0,1,1,1);
-          levyGrid.add(new Label("Surname"),0,2,1,1);
-                           levyGrid.add(new Label("Password"),0,3,1,1);
-                           
-                           
-   levyGrid.setVgap(15);
-       
-     
-                 registrationScreenTextFields.get("email").setPrefWidth(520);
-                           pravyGrid.add(registrationScreenTextFields.get("email"),1,0,1,1);
-                           pravyGrid.add(registrationScreenTextFields.get("name"),1,1,1,1);
-                             pravyGrid.add(registrationScreenTextFields.get("surname"),1,2,1,1);
-                              pravyGrid.add(registrationScreenTextFields.get("password"),1,3,1,1);
-                              pravyGrid.add(register,1,7,1,1);
-                           
-                    
-    pravyGrid.setHgap(10);                    
-   pravyGrid.setVgap(5);
-       
-  
- 
-      levy.getChildren().add(levyGrid);
-      pravy.getChildren().add(pravyGrid);
-      root.setLeft(levy);
-      root.setCenter(pravy);
-      root.setRight(new Label("     "));
-      root.setTop(new Label("\n"));
-    
-      
-        
-    
-       
-        return new Scene(root,640,200);
+        leftGrid.add(new Label("E-mail address"),0,0,1,1);
+        leftGrid.add(new Label("Name"),0,1,1,1);
+        leftGrid.add(new Label("Surname"),0,2,1,1);
+        leftGrid.add(new Label("Password"),0,3,1,1);
+        leftGrid.setVgap(15);
+        registrationScreenTextFields.get("email").setPrefWidth(520);
+        rightGrid.add(registrationScreenTextFields.get("email"),1,0,1,1);
+        rightGrid.add(registrationScreenTextFields.get("name"),1,1,1,1);
+        rightGrid.add(registrationScreenTextFields.get("surname"),1,2,1,1);
+        rightGrid.add(registrationScreenTextFields.get("password"),1,3,1,1);
+        rightGrid.add(register,1,7,1,1);
+        rightGrid.setHgap(10);                    
+        rightGrid.setVgap(5);
+        left.getChildren().add(leftGrid);
+        right.getChildren().add(rightGrid);
+        root.setLeft(left);
+        root.setCenter(right);
+        root.setRight(new Label("     "));
+        root.setTop(new Label("\n"));
+        return new Scene(root,640,240);
     }
     
     private boolean validEmail(String email){
@@ -339,4 +332,8 @@ searchR.getChildren().add(new Label("Found cafes"));
         launch(args);
     }
     
+    private double getMinimalRating(){
+        String rating = homeScreenTextFields.get("minimal rating").getText();
+        return rating == "" ? Double.parseDouble(rating) : 0;
+    }
 }
