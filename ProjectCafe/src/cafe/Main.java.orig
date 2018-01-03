@@ -59,12 +59,15 @@ public class Main extends Application {
     private final Map<String,TextField> cafeDetailUserTextFields = new HashMap<>();
     private final Map<String,TextArea> postCommentTextFields = new HashMap<>();
     private final Map<String,TextField> addCafeTextFields = new HashMap<>();
+<<<<<<< HEAD
     private final Map<String,ListView<String>> cafeDetailListViews = new HashMap<>();
     private final Map<String,ListView<String>> cafeDetailUserListViews = new HashMap<>();
+=======
     private final Map<String,TextField> changeCafeDetailTextFields = new HashMap<>();
     private final Map<String,TextField> findUserTextFields = new HashMap<>();
     private final Map<String,TextField> editUserTextFields = new HashMap<>();
     private final Map<String,TextField> editUserAdminTextFields = new HashMap<>();
+>>>>>>> 171abfd9e0dd69a011d4a4d3acf2860c8531ca75
     
     private final ListView<String> searchResults = new ListView<>();
     private final TextArea posts = new TextArea();
