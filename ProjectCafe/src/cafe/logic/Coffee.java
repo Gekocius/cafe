@@ -13,4 +13,8 @@ public class Coffee {
             this.price = price;
             this.name = name;
         }
+        
+        public String getName(){
+            return name;
+        }
 }

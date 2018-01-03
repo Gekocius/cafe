@@ -27,11 +27,11 @@ public class Cafe {
         }
 
 	public void editCoffee(Coffee coffee) {
-            coffees.add(coffee);
+            getCoffees().add(coffee);
 	}
 
 	public void editSpecialOffer(SpecialOffer offer) {
-            specialOffers.add(offer);
+            getSpecialOffers().add(offer);
 	}
         
         public void addPost(Post post){
@@ -45,4 +45,25 @@ public class Cafe {
         public String getName(){
             return name;
         }
+        
+        public double getRating(){
+            double sum = 0;
+            for (Rating rating : ratings)
+                sum += rating.getStars();
+            return sum / ratings.size();
+        }
+
+    /**
+     * @return the coffees
+     */
+    public List<Coffee> getCoffees() {
+        return coffees;
+    }
+
+    /**
+     * @return the specialOffers
+     */
+    public List<SpecialOffer> getSpecialOffers() {
+        return specialOffers;
+    }
 }

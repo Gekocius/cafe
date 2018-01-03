@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package cafe;
 
 import cafe.logic.Cafe;
@@ -54,12 +49,16 @@ public class Main extends Application {
     private final Map<String,TextField> homeScreenAdminTextFields = new HashMap<>();
     private final Map<String,TextField> registrationScreenTextFields = new HashMap<>();
     private final Map<String,TextField> loginScreenTextFields = new HashMap<>();
-    private final Map<String,TextArea> cafeDetailTextFields = new HashMap<>();
-    private final Map<String,TextArea> cafeDetailUserTextFields = new HashMap<>();
+    private final Map<String,TextField> cafeDetailTextFields = new HashMap<>();
+    private final Map<String,TextField> cafeDetailUserTextFields = new HashMap<>();
     private final Map<String,TextArea> postCommentTextFields = new HashMap<>();
     private final Map<String,TextField> addCafeTextFields = new HashMap<>();
+    private final Map<String,ListView<String>> cafeDetailListViews = new HashMap<>();
+    private final Map<String,ListView<String>> cafeDetailUserListViews = new HashMap<>();
     
     private final ListView<String> searchResults = new ListView<>();
+    private final TextArea posts = new TextArea();
+    private final TextArea postsUser = new TextArea();
     
     private Collection<Cafe> searchResultsComplete = null;
     
@@ -67,7 +66,10 @@ public class Main extends Application {
     private Stage stage;
     
     public Main(){
+        posts.setDisable(true);
+        postsUser.setDisable(true);
         createTextFields();
+        createListViews();
         homeScreen = createHomeScreen();
         homeScreenUser = createHomeScreenUser();
         homeScreenAdmin = createHomeScreenAdmin();
@@ -86,6 +88,13 @@ public class Main extends Application {
         stage.setScene(homeScreen);
         primaryStage.setTitle("Cafe");
         primaryStage.show();
+    }
+    
+    private void createListViews(){
+        cafeDetailListViews.put("OFOK",new ListView<>());
+        cafeDetailListViews.put("special offers",new ListView<>());
+        cafeDetailUserListViews.put("OFOK",new ListView<>());
+        cafeDetailUserListViews.put("special offers",new ListView<>());
     }
 
     private void createTextFields() {
@@ -116,14 +125,8 @@ public class Main extends Application {
         registrationScreenTextFields.put("password", new TextField());
         loginScreenTextFields.put("email", new TextField());
         loginScreenTextFields.put("password", new TextField());
-        cafeDetailTextFields.put("rating", new TextArea());
-        cafeDetailTextFields.put("OFOK", new TextArea());
-        cafeDetailTextFields.put("special offers", new TextArea());
-        cafeDetailTextFields.put("posts", new TextArea());
-        cafeDetailUserTextFields.put("rating", new TextArea());
-        cafeDetailUserTextFields.put("OFOK", new TextArea());
-        cafeDetailUserTextFields.put("special offers", new TextArea());
-        cafeDetailUserTextFields.put("posts", new TextArea());
+        cafeDetailTextFields.put("rating", new TextField());
+        cafeDetailUserTextFields.put("rating", new TextField());
         postCommentTextFields.put("comment", new TextArea());
         addCafeTextFields.put("name", new TextField());
         addCafeTextFields.put("country", new TextField());
@@ -196,11 +199,32 @@ public class Main extends Application {
         root.setPadding(new Insets(10));
         root.setSpacing(5);
         searchResults.setPrefHeight(600);
+        searchResults.setOnMouseClicked((MouseEvent) -> {
+            if(system.loggedIn())
+                viewCafeDetail(cafeDetailUser,cafeDetailUserTextFields,cafeDetailUserListViews);
+            else
+                viewCafeDetail(cafeDetail,cafeDetailTextFields,cafeDetailListViews);
+        });
         FlowPane searchResultPane=new FlowPane();
         searchResultPane.setAlignment(Pos.CENTER);
         searchResultPane.getChildren().add(new Label("Found cafes"));
         root.getChildren().addAll(searchResultPane,  searchResults);
         return new Scene(root,640,480);
+    }
+
+    private void viewCafeDetail(Scene variant,Map<String,TextField> textFields,Map<String,ListView<String>> listViews) {
+        Cafe selectedCafe = searchResultsComplete.stream().filter(cafe -> {
+            return cafe.getName().equals(searchResults.getSelectionModel().getSelectedItem());
+        }).findFirst().get();
+        double rating = selectedCafe.getRating();
+        textFields.get("rating").setText(rating == Double.NaN ? "Not rated yet" : rating + "");
+        selectedCafe.getCoffees().forEach(coffee -> {
+            listViews.get("OFOK").getItems().add(coffee.getName());
+        });
+        selectedCafe.getSpecialOffers().forEach(offer -> {
+            listViews.get("special offers").getItems().add(offer.getName());
+        });
+        stage.setScene(variant);
     }
     
     private Scene createHomeScreenUser(){
@@ -369,8 +393,8 @@ public class Main extends Application {
         root.setSpacing(5);
         
         
-        offeredKindsVBox.getChildren().addAll(new Label("Offered kinds of coffee"), cafeDetailTextFields.get("OFOK"));
-        specialOffersVBox.getChildren().addAll(new Label("Special offers"), cafeDetailTextFields.get("special offers"));
+        offeredKindsVBox.getChildren().addAll(new Label("Offered kinds of coffee"),cafeDetailListViews.get("OFOK"));
+        specialOffersVBox.getChildren().addAll(new Label("Special offers"),cafeDetailListViews.get("special offers"));
         kindsOfCafeHBox.getChildren().addAll(offeredKindsVBox, specialOffersVBox);
         
         HBox postsHBox = new HBox();
@@ -380,7 +404,7 @@ public class Main extends Application {
         
         ratingHBox.getChildren().addAll(new Label("Rating:"),cafeDetailTextFields.get("rating"));
         ratingHBox.setMaxHeight(10);
-        root.getChildren().addAll(cafeDetailLabel,ratingHBox, kindsOfCafeHBox, postsHBox, cafeDetailTextFields.get("posts"));
+        root.getChildren().addAll(cafeDetailLabel,ratingHBox, kindsOfCafeHBox, postsHBox, posts);
         return new Scene(root,640,480);
     }
     
@@ -411,8 +435,8 @@ public class Main extends Application {
         root.setSpacing(5);
         
         
-        offeredKindsVBox.getChildren().addAll(new Label("Offered kinds of coffee"), cafeDetailUserTextFields.get("OFOK"));
-        specialOffersVBox.getChildren().addAll(new Label("Special offers"), cafeDetailUserTextFields.get("special offers"));
+        offeredKindsVBox.getChildren().addAll(new Label("Offered kinds of coffee"),cafeDetailUserListViews.get("OFOK"));
+        specialOffersVBox.getChildren().addAll(new Label("Special offers"),cafeDetailUserListViews.get("special offers"));
         kindsOfCafeHBox.getChildren().addAll(offeredKindsVBox, specialOffersVBox);
         
         HBox postsHBox = new HBox();
@@ -424,7 +448,7 @@ public class Main extends Application {
         ratingHBox.getChildren().addAll(new Label("Rating:"),cafeDetailUserTextFields.get("rating"), addRatingButton);
         ratingHBox.setMaxHeight(10);
         ratingHBox.setSpacing(3);
-        root.getChildren().addAll(cafeDetailLabel,ratingHBox, kindsOfCafeHBox, postsHBox, cafeDetailUserTextFields.get("posts"));
+        root.getChildren().addAll(cafeDetailLabel,ratingHBox, kindsOfCafeHBox, postsHBox, postsUser);
         return new Scene(root,640,480);
     }
     

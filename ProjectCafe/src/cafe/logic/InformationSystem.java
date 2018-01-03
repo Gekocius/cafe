@@ -24,23 +24,22 @@ public class InformationSystem {
     private static final String SQL_LOGIN = "select email,user_name,user_surname,user_password,admin\n"
             + "from " + DB + ".users\n"
             + "where email like ? and user_password like ?;";
-    private static final String SQL_SEARCH = "select *\n" +
+    private static final String SQL_SEARCH = "select *, avg(stars) 'AVG_STARS'\n" +
             "from " + DB + ".offered_coffee\n" +
-            "\tfull join " + DB + ".cafe using(cafe_id)\n" +
-            "\tleft join " + DB + ".coffee using(coffee_id)\n" +
-            "\tleft join " + DB + ".offered_so using(cafe_id)\n" +
-            "\tleft join " + DB + ".special_offer using(offer_id)\n"
-            + "\tleft join  (select cafe_id, avg(stars) STARS\n" +
-              "\t\t\tfrom " + DB + ".rating\n" +
-              "\t\t\tgroup by cafe_id) AVERAGE_RATINGS using(cafe_id)"
-            + "where cafe_name like ?\n"
-            + "\tand country like ?\n"
-            + "\tand city like ?\n"
-            + "\tand street like ?\n"
-            + "\tand active = ?\n"
-            + "\tand (coffee_name like ? or coffee_name is null)\n"
-            + "\tand (offer_name like ? or offer_name is null)\n"
-            + "\tand (STARS >= ? or STARS is null);";
+            "full join " + DB + ".cafe using(cafe_id)\n" +
+            "left join " + DB + ".coffee using(coffee_id)\n" +
+            "left join " + DB + ".offered_so using(cafe_id)\n" +
+            "left join " + DB + ".special_offer using(offer_id)\n" +
+            "left join " + DB + ".rating using(cafe_id)" +
+            "where cafe_name like ?\n" +
+            "and country like ?\n" +
+            "and city like ?\n" +
+            "and street like ?\n" +
+            "and active = ?\n" +
+            "and (coffee_name like ? or coffee_name is null)\n" +
+            "and (offer_name like ? or offer_name is null)\n" +
+            "and ('AVG_STARS' >= ? or 'AVG_STARS' is null)" +
+            "group by cafe_id;";
     
     
     private User loggedInUser = null;
@@ -158,6 +157,9 @@ public class InformationSystem {
                         if(!rs.wasNull())
                             nextCafe.editCoffee(new Coffee(coffee_id,rs.getDouble("price"),
                                     rs.getString("coffee_name")));
+                        final int rating_id = rs.getInt("rating_id");
+                        if(!rs.wasNull())
+                            nextCafe.addRating(new Rating(rating_id,rs.getDouble("stars"),null,nextCafe));
                         hasNext = rs.next();
                     }while(hasNext && rs.getInt("cafe_id") == cafeID);
                     cafes.add(nextCafe);
