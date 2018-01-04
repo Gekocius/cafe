@@ -61,6 +61,7 @@ public class Main extends Application {
     private final Map<String,TextField> addCafeTextFields = new HashMap<>();
     private final Map<String,ListView<String>> cafeDetailListViews = new HashMap<>();
     private final Map<String,ListView<String>> cafeDetailUserListViews = new HashMap<>();
+    private final Map<String,ListView<String>> changeCafeDetailListViews = new HashMap<>();
     private final Map<String,TextField> changeCafeDetailTextFields = new HashMap<>();
     private final Map<String,TextField> findUserTextFields = new HashMap<>();
     private final Map<String,TextField> editUserTextFields = new HashMap<>();
@@ -109,6 +110,8 @@ public class Main extends Application {
         cafeDetailListViews.put("special offers",new ListView<>());
         cafeDetailUserListViews.put("OFOK",new ListView<>());
         cafeDetailUserListViews.put("special offers",new ListView<>());
+        changeCafeDetailListViews.put("OFOK", new ListView<>());
+        changeCafeDetailListViews.put("special offers", new ListView<>());
     }
 
     private void createTextFields() {
@@ -154,9 +157,7 @@ public class Main extends Application {
         changeCafeDetailTextFields.put("country", new TextField());
         changeCafeDetailTextFields.put("city", new TextField());
         changeCafeDetailTextFields.put("street", new TextField());
-        changeCafeDetailTextFields.put("offered kinds", new TextField());
         changeCafeDetailTextFields.put("add new kind", new TextField());
-        changeCafeDetailTextFields.put("special offers", new TextField());
         changeCafeDetailTextFields.put("add new special", new TextField());
         findUserTextFields.put("e-mail", new TextField());
         findUserTextFields.put("name", new TextField());
@@ -232,7 +233,9 @@ public class Main extends Application {
         root.setSpacing(5);
         searchResults.setPrefHeight(600);
         searchResults.setOnMouseClicked((MouseEvent) -> {
-            if(system.loggedIn())
+            if(system.loggedInAsAdmin())
+                viewCafeDetail(changeCafeDetail, changeCafeDetailTextFields, changeCafeDetailListViews);
+            else if(system.loggedIn())
                 viewCafeDetail(cafeDetailUser,cafeDetailUserTextFields,cafeDetailUserListViews);
             else
                 viewCafeDetail(cafeDetail,cafeDetailTextFields,cafeDetailListViews);
@@ -249,12 +252,19 @@ public class Main extends Application {
             return cafe.getName().equals(searchResults.getSelectionModel().getSelectedItem());
         }).findFirst().get();
         double rating = selectedCafe.getRating();
-        textFields.get("rating").setText(rating == Double.NaN ? "Not rated yet" : rating + "");
+        if(!system.loggedInAsAdmin())
+            textFields.get("rating").setText(rating == Double.NaN ? "Not rated yet" : rating + "");
+        else{
+            textFields.get("name").setText(selectedCafe.getName());
+            textFields.get("country").setText(selectedCafe.getCountry());
+            textFields.get("city").setText(selectedCafe.getCity());
+            textFields.get("street").setText(selectedCafe.getStreet());
+        }
         selectedCafe.getCoffees().forEach(coffee -> {
-            listViews.get("OFOK").getItems().add(coffee.getName());
+            listViews.get("OFOK").getItems().add(coffee.toString());
         });
         selectedCafe.getSpecialOffers().forEach(offer -> {
-            listViews.get("special offers").getItems().add(offer.getName());
+            listViews.get("special offers").getItems().add(offer.toString());
         });
         stage.setScene(variant);
     }
@@ -555,7 +565,7 @@ public class Main extends Application {
         VBox root = new VBox();
         
         HBox nameHBox = new HBox();
-        nameHBox.getChildren().addAll(new Label ("Name"), addCafeTextFields.get("name"));
+        nameHBox.getChildren().addAll(new Label ("Name"), changeCafeDetailTextFields.get("name"));
         nameHBox.setSpacing(110);
         
         CheckBox isActiveCheckBox = new CheckBox("Is this cafe active?");
@@ -570,8 +580,8 @@ public class Main extends Application {
         labelsLocationVBox.setSpacing(10);
         
         VBox textFieldsVBox = new VBox();
-        textFieldsVBox.getChildren().addAll(addCafeTextFields.get("country"),addCafeTextFields.get("city"), 
-                                        addCafeTextFields.get("street"));
+        textFieldsVBox.getChildren().addAll(changeCafeDetailTextFields.get("country"),changeCafeDetailTextFields.get("city"), 
+                                        changeCafeDetailTextFields.get("street"));
         
         locationHBox.getChildren().addAll(labelsLocationVBox, textFieldsVBox);
         locationHBox.setSpacing(100);
@@ -589,11 +599,11 @@ public class Main extends Application {
         
         });
             
-        addKindsVBox.getChildren().addAll(new Label("Offered kinds of coffee"), addCafeTextFields.get("offered kinds"),
-                new Label("Kind of coffee"), addCafeTextFields.get("add new kind"), addNewKindButton);
+        addKindsVBox.getChildren().addAll(new Label("Offered kinds of coffee"), changeCafeDetailListViews.get("OFOK"),
+                new Label("Kind of coffee"), changeCafeDetailTextFields.get("add new kind"), addNewKindButton);
         
-        addSpecialOfVBox.getChildren().addAll(new Label("Special offers"), addCafeTextFields.get("special offers"),
-                new Label("Special offer"), addCafeTextFields.get("add new special"), addNewSpecialButton);
+        addSpecialOfVBox.getChildren().addAll(new Label("Special offers"), changeCafeDetailListViews.get("special offers"),
+                new Label("Special offer"), changeCafeDetailTextFields.get("add new special"), addNewSpecialButton);
        
         offersHBox.getChildren().addAll(addKindsVBox, addSpecialOfVBox);
         offersHBox.setSpacing(150);

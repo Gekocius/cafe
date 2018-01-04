@@ -5,6 +5,27 @@ import java.util.List;
 
 public class Cafe {
 
+    /**
+     * @return the country
+     */
+    public String getCountry() {
+        return country;
+    }
+
+    /**
+     * @return the city
+     */
+    public String getCity() {
+        return city;
+    }
+
+    /**
+     * @return the street
+     */
+    public String getStreet() {
+        return street;
+    }
+
 	private int id;
 	private String name;
         private String country;
