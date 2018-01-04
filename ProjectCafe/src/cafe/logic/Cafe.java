@@ -18,12 +18,13 @@ public class Cafe {
 	private Admin admin;
         
         public Cafe(int id,String name,String country,String city,String street,
-                    boolean active){
+                    boolean active,Admin admin){
             this.name = name;
             this.country = country;
             this.city = city;
             this.street = street;
             this.active = active;
+            this.admin = admin;
         }
 
 	public void editCoffee(Coffee coffee) {

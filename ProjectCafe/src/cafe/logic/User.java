@@ -12,8 +12,6 @@ public class User {
         
         private String password;
 
-	private int id;
-
 	private Collection<Post> posts;
 
 	private Collection<Rating> ratings;

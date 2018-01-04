@@ -25,12 +25,14 @@ public class InformationSystem {
             + "from " + DB + ".users\n"
             + "where email like ? and user_password like ?;";
     private static final String SQL_SEARCH = "select *, avg(stars) 'AVG_STARS'\n" +
-            "from " + DB + ".offered_coffee\n" +
-            "full join " + DB + ".cafe using(cafe_id)\n" +
-            "left join " + DB + ".coffee using(coffee_id)\n" +
+            "from " + DB + ".cafe\n" +
+            "left join " + DB + ".admins on(cafe.user_id=admins.admin_id)\n" +
+            "left join " + DB + ".offered_coffee using(cafe_id)\n" +
             "left join " + DB + ".offered_so using(cafe_id)\n" +
+            "left join " + DB + ".rating using(cafe_id)\n" +
+            "left join " + DB + ".users on(rating.user_id=users.user_id)\n" +
+            "left join " + DB + ".coffee using(coffee_id)\n" +
             "left join " + DB + ".special_offer using(offer_id)\n" +
-            "left join " + DB + ".rating using(cafe_id)" +
             "where cafe_name like ?\n" +
             "and country like ?\n" +
             "and city like ?\n" +
@@ -38,7 +40,7 @@ public class InformationSystem {
             "and active = ?\n" +
             "and (coffee_name like ? or coffee_name is null)\n" +
             "and (offer_name like ? or offer_name is null)\n" +
-            "and ('AVG_STARS' >= ? or 'AVG_STARS' is null)" +
+            "and ('AVG_STARS' >= ? or 'AVG_STARS' is null)\n" +
             "group by cafe_id;";
     
     
@@ -146,7 +148,9 @@ public class InformationSystem {
                     final int cafeID = rs.getInt("cafe_id");
                     Cafe nextCafe = new Cafe(cafeID,rs.getString("cafe_name"),
                               rs.getString("country"),rs.getString("city"),
-                              rs.getString("street"),rs.getBoolean("active"));
+                              rs.getString("street"),rs.getBoolean("active"),
+                              new Admin(rs.getString("admin_email"), rs.getString("admin_name"),
+                                        rs.getString("admin_surname"), rs.getString("admin_password")));
                     do{
                         final int offer_id = rs.getInt("offer_id");
                         if(!rs.wasNull())
@@ -159,7 +163,10 @@ public class InformationSystem {
                                     rs.getString("coffee_name")));
                         final int rating_id = rs.getInt("rating_id");
                         if(!rs.wasNull())
-                            nextCafe.addRating(new Rating(rating_id,rs.getDouble("stars"),null,nextCafe));
+                            nextCafe.addRating(new Rating(rating_id,rs.getDouble("stars"),
+                                               new User(rs.getString("email"), rs.getString("user_name"), 
+                                                        rs.getString("user_surname"), rs.getString("user_password")),
+                                               nextCafe));
                         hasNext = rs.next();
                     }while(hasNext && rs.getInt("cafe_id") == cafeID);
                     cafes.add(nextCafe);
