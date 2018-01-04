@@ -2,7 +2,7 @@ package cafe.logic;
 
 public class Rating {
 
-	private int id;
+	private final int id;
 
 	private double stars;
 

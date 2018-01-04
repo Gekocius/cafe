@@ -21,16 +21,20 @@ public class InformationSystem {
     private static final String SQL_CHECK_ACCOUNT = "select email\n"
             + "from " + DB + ".users\n"
             + "where email like ?;";
-    private static final String SQL_LOGIN = "select email,user_name,user_surname,user_password,admin\n"
+    private static final String SQL_CHECK_COFFEE = "select *\n"
+            + "from " + DB + ".coffee\n"
+            + "where coffee_name like ?\n"
+            + "and price = ?;";
+    private static final String SQL_LOGIN = "select user_id,email,user_name,user_surname,user_password,admin\n"
             + "from " + DB + ".users\n"
             + "where email like ? and user_password like ?;";
-    private static final String SQL_SEARCH = "select *, avg(stars) 'AVG_STARS'\n" +
+    private static final String SQL_SEARCH = "select *\n" +
             "from " + DB + ".cafe\n" +
-            "left join " + DB + ".admins on(cafe.user_id=admins.admin_id)\n" +
+            "left join " + DB + ".admins using(admin_id)\n" +
             "left join " + DB + ".offered_coffee using(cafe_id)\n" +
             "left join " + DB + ".offered_so using(cafe_id)\n" +
             "left join " + DB + ".rating using(cafe_id)\n" +
-            "left join " + DB + ".users on(rating.user_id=users.user_id)\n" +
+            "left join " + DB + ".users using(user_id)\n" +
             "left join " + DB + ".coffee using(coffee_id)\n" +
             "left join " + DB + ".special_offer using(offer_id)\n" +
             "where cafe_name like ?\n" +
@@ -40,8 +44,13 @@ public class InformationSystem {
             "and active = ?\n" +
             "and (coffee_name like ? or coffee_name is null)\n" +
             "and (offer_name like ? or offer_name is null)\n" +
-            "and ('AVG_STARS' >= ? or 'AVG_STARS' is null)\n" +
-            "group by cafe_id;";
+            "order by cafe_id,coffee_id,offer_id,rating_id;";
+    private static final String SQL_ADD_COFFEE = "insert into " + DB + ".coffee\n" +
+            "(COFFEE_NAME,PRICE)\n" +
+            "values (?,?);";
+    private static final String SQL_ADD_COFFEE_TO_CAFE = "insert into " + DB + ".offered_coffee\n" +
+            "(cafe_id,coffee_id)\n" +
+            "values (?,?);";
     
     
     private User loggedInUser = null;
@@ -89,6 +98,55 @@ public class InformationSystem {
             statement.setString(1, email);
             return statement.executeQuery().next();
     }
+
+    public Coffee createCoffee(String coffee_name,double price,int cafe_id){
+        Connection connection;
+        PreparedStatement statement = null;
+        Coffee newCoffee = null;
+        try {
+            Class.forName(DB_DRIVER);
+            connection = DriverManager.getConnection(DB_CONNECTION, DB_USER, DB_PASSWORD);
+            newCoffee = getCoffee(statement, connection, coffee_name, price);
+            if(newCoffee == null){
+                statement = connection.prepareStatement(SQL_ADD_COFFEE);
+                int i = 1;
+                statement.setString(i++, coffee_name);
+                statement.setDouble(i++, price);
+                int updatedRecords = statement.executeUpdate();
+                if(updatedRecords == 1){
+                    newCoffee = getCoffee(statement, connection, coffee_name, price);
+                }
+            }
+            if(newCoffee != null){
+                statement = connection.prepareStatement(SQL_ADD_COFFEE_TO_CAFE);
+                int i = 1;
+                statement.setInt(i++, cafe_id);
+                statement.setInt(i++, newCoffee.getID());
+                statement.executeUpdate();
+            }
+            statement.close();
+            connection.close();
+        }
+        catch(SQLException | ClassNotFoundException ex){
+            ex.printStackTrace();
+        }
+        finally{
+            return newCoffee;
+        }
+    }
+    
+    private Coffee getCoffee(PreparedStatement statement, 
+                             Connection connection,
+                             String coffee_name, double price) throws SQLException{
+            statement = connection.prepareStatement(SQL_CHECK_COFFEE);
+            statement.setString(1, coffee_name);
+            statement.setDouble(2, price);
+            ResultSet rs = statement.executeQuery();
+            if(rs.next())
+                return new Coffee(rs.getInt("coffee_id"), price, coffee_name);
+            else
+                return null;
+    }
     
     public boolean login(String email,String password){
         Connection connection;
@@ -103,10 +161,10 @@ public class InformationSystem {
             statement.setString(i++, password);
             ResultSet rs = statement.executeQuery();
             if(rs.next()){
-                if(rs.getBoolean(5))
-                    loggedInUser = new Admin(rs.getString("email"),rs.getString("user_name"),rs.getString("user_surname"),rs.getString("user_password"));
+                if(rs.getBoolean("admin"))
+                    loggedInUser = new Admin(rs.getInt("user_id"),rs.getString("email"),rs.getString("user_name"),rs.getString("user_surname"),rs.getString("user_password"));
                 else
-                    loggedInUser = new User(rs.getString("email"),rs.getString("user_name"),rs.getString("user_surname"),rs.getString("user_password"));
+                    loggedInUser = new User(rs.getInt("user_id"),rs.getString("email"),rs.getString("user_name"),rs.getString("user_surname"),rs.getString("user_password"));
                 result = true;
             }
             statement.close();
@@ -121,7 +179,7 @@ public class InformationSystem {
     }
     
     public Collection<Cafe> search(String cafe_name,String country,String city,String street,
-                                   boolean active,String coffee_name,String offer_name,double rating){
+                                   boolean active,String coffee_name,String offer_name,double minimalRating){
         cafes.removeAll(cafes);
         Connection connection;
         PreparedStatement statement;
@@ -138,38 +196,45 @@ public class InformationSystem {
             statement.setBoolean(i++, active);
             statement.setString(i++, "%" + coffee_name + "%");
             statement.setString(i++, "%" + offer_name  + "%");
-            statement.setDouble(i++, rating);
             rs = statement.executeQuery();
             if(rs == null)
                 return retrieveCafes();
             else{
                 boolean hasNext = rs.next();
+                int lastOfferID = 0, lastCoffeeID = 0, lastRatingID = 0;
                 while(hasNext){
                     final int cafeID = rs.getInt("cafe_id");
                     Cafe nextCafe = new Cafe(cafeID,rs.getString("cafe_name"),
                               rs.getString("country"),rs.getString("city"),
                               rs.getString("street"),rs.getBoolean("active"),
-                              new Admin(rs.getString("admin_email"), rs.getString("admin_name"),
+                              new Admin(rs.getInt("admin_id"),rs.getString("admin_email"), rs.getString("admin_name"),
                                         rs.getString("admin_surname"), rs.getString("admin_password")));
                     do{
                         final int offer_id = rs.getInt("offer_id");
-                        if(!rs.wasNull())
-                            nextCafe.editSpecialOffer(new SpecialOffer(offer_id,
+                        if(!rs.wasNull() && offer_id != lastOfferID){
+                            nextCafe.addSpecialOffer(new SpecialOffer(offer_id,
                                     rs.getDate("start_date"),rs.getDate("end_date"),
                                     rs.getString("offer_name"),rs.getString("description")));
+                            lastOfferID = offer_id;
+                        }
                         final int coffee_id = rs.getInt("coffee_id");
-                        if(!rs.wasNull())
-                            nextCafe.editCoffee(new Coffee(coffee_id,rs.getDouble("price"),
+                        if(!rs.wasNull() && coffee_id != lastCoffeeID){
+                            nextCafe.addCoffee(new Coffee(coffee_id,rs.getDouble("price"),
                                     rs.getString("coffee_name")));
+                            lastCoffeeID = coffee_id;
+                        }
                         final int rating_id = rs.getInt("rating_id");
-                        if(!rs.wasNull())
+                        if(!rs.wasNull() && rating_id != lastRatingID){
                             nextCafe.addRating(new Rating(rating_id,rs.getDouble("stars"),
-                                               new User(rs.getString("email"), rs.getString("user_name"), 
+                                               new User(rs.getInt("user_id"),rs.getString("email"), rs.getString("user_name"), 
                                                         rs.getString("user_surname"), rs.getString("user_password")),
                                                nextCafe));
+                            lastRatingID = rating_id;
+                        }
                         hasNext = rs.next();
                     }while(hasNext && rs.getInt("cafe_id") == cafeID);
-                    cafes.add(nextCafe);
+                    if(!nextCafe.hasRatings() || nextCafe.getRating() >= minimalRating)
+                        cafes.add(nextCafe);
                 }
             }
             statement.close();

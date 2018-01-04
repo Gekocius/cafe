@@ -6,8 +6,8 @@ public class Admin extends User {
 
 	private Collection<Cafe> cafes;
         
-        public Admin(String email,String name,String surname,String password){
-            super(email,name,surname,password);
+        public Admin(int id,String email,String name,String surname,String password){
+            super(id,email,name,surname,password);
         }
 
 	public void addCafe(Cafe cafe) {

@@ -1,11 +1,15 @@
 package cafe;
 
 import cafe.logic.Cafe;
+import cafe.logic.Coffee;
 import cafe.logic.InformationSystem;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -72,6 +76,7 @@ public class Main extends Application {
     private final TextArea postsUser = new TextArea();
     
     private Collection<Cafe> searchResultsComplete = null;
+    private Cafe selectedCafe = null;
     
     
     private Stage stage;
@@ -211,6 +216,7 @@ public class Main extends Application {
     }
 
     private void search(Map<String,TextField> textFields) {
+        selectedCafe = null;
         searchResults.getItems().removeIf(filter -> {return true;});
         searchResultsComplete
                 = system.search(textFields.get("cafe name").getText(),
@@ -248,9 +254,22 @@ public class Main extends Application {
     }
 
     private void viewCafeDetail(Scene variant,Map<String,TextField> textFields,Map<String,ListView<String>> listViews) {
-        Cafe selectedCafe = searchResultsComplete.stream().filter(cafe -> {
-            return cafe.getName().equals(searchResults.getSelectionModel().getSelectedItem());
-        }).findFirst().get();
+        try{
+            selectedCafe = searchResultsComplete.stream().filter(cafe -> {
+                return cafe.getName().equals(searchResults.getSelectionModel().getSelectedItem());
+            }).findFirst().get();
+        }
+        catch(Exception ex){
+            Utilities.messageBox("No such cafe found", "Not found", "Cafe not found", Alert.AlertType.INFORMATION);
+            if(system.loggedInAsAdmin())
+                stage.setScene(homeScreenAdmin);
+            else if(system.loggedIn())
+                stage.setScene(homeScreenUser);
+            else
+                stage.setScene(homeScreen);
+        }
+        if(selectedCafe == null)
+            return;
         double rating = selectedCafe.getRating();
         if(!system.loggedInAsAdmin())
             textFields.get("rating").setText(rating == Double.NaN ? "Not rated yet" : rating + "");
@@ -593,7 +612,13 @@ public class Main extends Application {
         Button addNewSpecialButton = new Button("Add new special offer");
           
         addNewKindButton.setOnAction((ActionEvent) -> {
-        
+            if(selectedCafe != null){
+                Coffee newCoffee = readNewKindOfCoffee(changeCafeDetailTextFields.get("add new kind").getText(),selectedCafe.getID());
+                if(newCoffee != null){
+                    selectedCafe.addCoffee(newCoffee);
+                    changeCafeDetailListViews.get("OFOK").getItems().add(newCoffee.toString());
+                }
+            }
         });
         addNewSpecialButton.setOnAction((ActionEvent) -> {
         
@@ -608,20 +633,27 @@ public class Main extends Application {
         offersHBox.getChildren().addAll(addKindsVBox, addSpecialOfVBox);
         offersHBox.setSpacing(150);
         
-        Button registerButton = new Button("Change cafe detail");
-        registerButton.setPrefWidth(620);
-        registerButton.setPrefHeight(50);
+        Button changeCafeDetailButton = new Button("Change cafe detail");
+        changeCafeDetailButton.setPrefWidth(620);
+        changeCafeDetailButton.setPrefHeight(50);
         
-        registerButton.setOnAction((ActionEvent) -> {
+        changeCafeDetailButton.setOnAction((ActionEvent) -> {
         
         });
         root.getChildren().addAll(new Label("Change cafe detail"), isActiveCheckBox,nameHBox, new Label("Location"), 
                 locationHBox, offersHBox, 
-                registerButton);
+                changeCafeDetailButton);
         root.setAlignment(Pos.TOP_CENTER);
         root.setSpacing(5);
         return new Scene(root, 640,480);
- 
+    }
+    private Coffee readNewKindOfCoffee(String userInput,int cafe_id){
+        Pattern coffeeFormat = Pattern.compile("(\\w+):\\s+(\\d+(?:\\.\\d+)?)");
+        Matcher matcher = coffeeFormat.matcher(userInput);
+        if(matcher.matches() && matcher.groupCount() == 2)
+            return system.createCoffee(matcher.group(1), Double.parseDouble(matcher.group(2)), cafe_id);
+        else
+            return null;
     }
     
     private Scene createFindUser(){

@@ -26,7 +26,7 @@ public class Cafe {
         return street;
     }
 
-	private int id;
+	private final int id;
 	private String name;
         private String country;
         private String city;
@@ -40,6 +40,7 @@ public class Cafe {
         
         public Cafe(int id,String name,String country,String city,String street,
                     boolean active,Admin admin){
+            this.id = id;
             this.name = name;
             this.country = country;
             this.city = city;
@@ -48,12 +49,20 @@ public class Cafe {
             this.admin = admin;
         }
 
-	public void editCoffee(Coffee coffee) {
+	public void addCoffee(Coffee coffee) {
             getCoffees().add(coffee);
 	}
 
-	public void editSpecialOffer(SpecialOffer offer) {
+	public void editCoffee(Coffee coffee) {
+            
+	}
+
+	public void addSpecialOffer(SpecialOffer offer) {
             getSpecialOffers().add(offer);
+	}
+
+	public void editSpecialOffer(SpecialOffer offer) {
+            
 	}
         
         public void addPost(Post post){
@@ -63,9 +72,17 @@ public class Cafe {
         public void addRating(Rating rating){
             ratings.add(rating);
         }
+        
+        public int getID(){
+            return id;
+        }
 
         public String getName(){
             return name;
+        }
+        
+        public boolean hasRatings(){
+            return ratings.size() > 0;
         }
         
         public double getRating(){

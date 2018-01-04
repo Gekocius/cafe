@@ -4,7 +4,7 @@ import java.util.Date;
 
 public class SpecialOffer {
 
-	private int id;
+	private final int id;
 
 	private Date startDate;
 

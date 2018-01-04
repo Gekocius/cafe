@@ -2,7 +2,7 @@ package cafe.logic;
 
 public class Coffee {
 
-	private int id;
+	private final int id;
 
 	private double price;
 
@@ -12,6 +12,10 @@ public class Coffee {
             this.id = id;
             this.price = price;
             this.name = name;
+        }
+        
+        public int getID(){
+            return id;
         }
         
         public String getName(){
