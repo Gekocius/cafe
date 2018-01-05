@@ -3,11 +3,12 @@ package cafe;
 import cafe.logic.Cafe;
 import cafe.logic.Coffee;
 import cafe.logic.InformationSystem;
+import cafe.logic.SpecialOffer;
+import java.sql.Date;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javafx.application.Application;
@@ -36,6 +37,7 @@ import util.Utilities;
  * @author David Fuchs
  */
 public class Main extends Application {
+    private static final int BASE_YEAR = 1900;
     private final InformationSystem system = new InformationSystem();
     private final Scene loginScreen;
     private final Scene homeScreen;
@@ -617,11 +619,19 @@ public class Main extends Application {
                 if(newCoffee != null){
                     selectedCafe.addCoffee(newCoffee);
                     changeCafeDetailListViews.get("OFOK").getItems().add(newCoffee.toString());
+                    changeCafeDetailTextFields.get("add new kind").clear();
                 }
             }
         });
         addNewSpecialButton.setOnAction((ActionEvent) -> {
-        
+            if(selectedCafe != null){
+                SpecialOffer newSpecialOffer = readNewSpecialOffer(changeCafeDetailTextFields.get("add new special").getText(),selectedCafe.getID());
+                if(newSpecialOffer != null){
+                    selectedCafe.addSpecialOffer(newSpecialOffer);
+                    changeCafeDetailListViews.get("special offers").getItems().add(newSpecialOffer.toString());
+                    changeCafeDetailTextFields.get("add new special").clear();
+                }
+            }
         });
             
         addKindsVBox.getChildren().addAll(new Label("Offered kinds of coffee"), changeCafeDetailListViews.get("OFOK"),
@@ -647,13 +657,26 @@ public class Main extends Application {
         root.setSpacing(5);
         return new Scene(root, 640,480);
     }
+    
     private Coffee readNewKindOfCoffee(String userInput,int cafe_id){
-        Pattern coffeeFormat = Pattern.compile("(\\w+):\\s+(\\d+(?:\\.\\d+)?)");
+        Pattern coffeeFormat = Pattern.compile("^(\\w+):\\s+(\\d+(?:\\.\\d+)?)$");
         Matcher matcher = coffeeFormat.matcher(userInput);
         if(matcher.matches() && matcher.groupCount() == 2)
-            return system.createCoffee(matcher.group(1), Double.parseDouble(matcher.group(2)), cafe_id);
+            return system.createCoffee(cafe_id,matcher.group(1), Double.parseDouble(matcher.group(2)));
         else
             return null;
+    }
+    
+    private SpecialOffer readNewSpecialOffer(String userInput,int cafe_id){
+        Pattern coffeeFormat = Pattern.compile("^(\\w+(?:\\s\\w+)*):\\s+(\\d+)\\.(\\d+)\\.(\\d+)-(\\d+)\\.(\\d+)\\.(\\d+)\\s+(\\w+(?:\\s\\w+)*)$");
+        Matcher matcher = coffeeFormat.matcher(userInput);
+        if(matcher.matches() && matcher.groupCount() == 8){
+            Date startDate = new Date(Integer.parseInt(matcher.group(4))-BASE_YEAR, Integer.parseInt(matcher.group(3)), Integer.parseInt(matcher.group(2))),
+                 endDate = new Date(Integer.parseInt(matcher.group(7))-BASE_YEAR, Integer.parseInt(matcher.group(6)), Integer.parseInt(matcher.group(5)));
+            if(endDate.after(startDate))
+                return system.createSpecialOffer(cafe_id,matcher.group(1),startDate,endDate,matcher.group(8));
+        }
+        return null;
     }
     
     private Scene createFindUser(){

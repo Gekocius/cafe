@@ -1,6 +1,7 @@
 package cafe.logic;
 
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -25,6 +26,12 @@ public class InformationSystem {
             + "from " + DB + ".coffee\n"
             + "where coffee_name like ?\n"
             + "and price = ?;";
+    private static final String SQL_CHECK_SPECIAL_OFFER = "select *\n"
+            + "from " + DB + ".special_offer\n"
+            + "where offer_name like ?\n"
+            + "and start_date = ?\n"
+            + "and end_date = ?\n"
+            + "and description like ?;";
     private static final String SQL_LOGIN = "select user_id,email,user_name,user_surname,user_password,admin\n"
             + "from " + DB + ".users\n"
             + "where email like ? and user_password like ?;";
@@ -48,8 +55,14 @@ public class InformationSystem {
     private static final String SQL_ADD_COFFEE = "insert into " + DB + ".coffee\n" +
             "(COFFEE_NAME,PRICE)\n" +
             "values (?,?);";
+    private static final String SQL_ADD_SPECIAL_OFFER = "insert into " + DB + ".special_offer\n" +
+            "(OFFER_NAME,START_DATE,END_DATE,DESCRIPTION)\n" +
+            "values (?,?,?,?);";
     private static final String SQL_ADD_COFFEE_TO_CAFE = "insert into " + DB + ".offered_coffee\n" +
             "(cafe_id,coffee_id)\n" +
+            "values (?,?);";
+    private static final String SQL_ADD_SPECIAL_OFFER_TO_CAFE = "insert into " + DB + ".offered_so\n" +
+            "(cafe_id,offer_id)\n" +
             "values (?,?);";
     
     
@@ -99,7 +112,7 @@ public class InformationSystem {
             return statement.executeQuery().next();
     }
 
-    public Coffee createCoffee(String coffee_name,double price,int cafe_id){
+    public Coffee createCoffee(int cafe_id,String coffee_name,double price){
         Connection connection;
         PreparedStatement statement = null;
         Coffee newCoffee = null;
@@ -134,6 +147,44 @@ public class InformationSystem {
             return newCoffee;
         }
     }
+
+    public SpecialOffer createSpecialOffer(int cafe_id,String offer_name,Date startDate,Date endDate,String description){
+        Connection connection;
+        PreparedStatement statement = null;
+        SpecialOffer newOffer = null;
+        try {
+            Class.forName(DB_DRIVER);
+            connection = DriverManager.getConnection(DB_CONNECTION, DB_USER, DB_PASSWORD);
+            newOffer = getSpecialOffer(statement, connection, offer_name, startDate,endDate,description);
+            if(newOffer == null){
+                statement = connection.prepareStatement(SQL_ADD_SPECIAL_OFFER);
+                int i = 1;
+                statement.setString(i++, offer_name);
+                statement.setDate(i++, startDate);
+                statement.setDate(i++, endDate);
+                statement.setString(i++, description);
+                int updatedRecords = statement.executeUpdate();
+                if(updatedRecords == 1){
+                    newOffer = getSpecialOffer(statement, connection, offer_name, startDate,endDate,description);
+                }
+            }
+            if(newOffer != null){
+                statement = connection.prepareStatement(SQL_ADD_SPECIAL_OFFER_TO_CAFE);
+                int i = 1;
+                statement.setInt(i++, cafe_id);
+                statement.setInt(i++, newOffer.getID());
+                statement.executeUpdate();
+            }
+            statement.close();
+            connection.close();
+        }
+        catch(SQLException | ClassNotFoundException ex){
+            ex.printStackTrace();
+        }
+        finally{
+            return newOffer;
+        }
+    }
     
     private Coffee getCoffee(PreparedStatement statement, 
                              Connection connection,
@@ -144,6 +195,22 @@ public class InformationSystem {
             ResultSet rs = statement.executeQuery();
             if(rs.next())
                 return new Coffee(rs.getInt("coffee_id"), price, coffee_name);
+            else
+                return null;
+    }
+    
+    private SpecialOffer getSpecialOffer(PreparedStatement statement, 
+                             Connection connection,
+                             String offer_name, Date startDate,Date endDate,String description) throws SQLException{
+            statement = connection.prepareStatement(SQL_CHECK_SPECIAL_OFFER);
+                int i = 1;
+                statement.setString(i++, offer_name);
+                statement.setDate(i++, startDate);
+                statement.setDate(i++, endDate);
+                statement.setString(i++, description);
+            ResultSet rs = statement.executeQuery();
+            if(rs.next())
+                return new SpecialOffer(rs.getInt("offer_id"),startDate,endDate,offer_name,description);
             else
                 return null;
     }

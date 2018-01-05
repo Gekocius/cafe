@@ -26,6 +26,10 @@ public class SpecialOffer {
             return name;
         }
         
+        public int getID(){
+            return id;
+        }
+        
         @Override
         public String toString(){
             return name + ": " + startDate + "-" + endDate + "\n" + description;
