@@ -97,8 +97,15 @@ public class InformationSystem {
     private static final String SQL_ADD_POST = "insert into " + DB + ".post\n" +
             "(user_id,cafe_id,post_text)\n" +
             "values (?,?,?);";
-    
-    
+   private static final String SQL_CHANGE_USER_DETAIL = "update " + DB + ".users\n" +
+            "set user_name = ?,\n" +
+            "user_surname = ?,\n" +
+            "email = ?,\n" +
+            "user_password = ?,\n" +
+            "admin = ?,\n" +
+            "where user_id = ?;";
+
+   
     private User loggedInUser = null;
     
     private final Collection<Cafe> cafes = new ArrayList<>();
@@ -446,6 +453,35 @@ public class InformationSystem {
         }
     }
     
+    public boolean changeUserDetail(String user_name,String user_surname,String email,String user_password, int uid){
+        Connection connection;
+        PreparedStatement statement;
+        boolean result = false;
+        try {
+            Class.forName(DB_DRIVER);
+            connection = DriverManager.getConnection(DB_CONNECTION, DB_USER, DB_PASSWORD);
+            statement = connection.prepareStatement(SQL_CHANGE_USER_DETAIL);
+            int i = 1;
+            statement.setString(i++, user_name);
+            statement.setString(i++, user_surname);
+            statement.setString(i++, email);
+            statement.setString(i++, user_password);
+            statement.setBoolean(i++, false);
+            statement.setInt(i++, uid);  
+            int updatedLines = statement.executeUpdate();
+            if(updatedLines == 1)
+                result = true;
+            statement.close();
+            connection.close();
+        }
+        catch(SQLException | ClassNotFoundException ex){
+            ex.printStackTrace();
+        }
+        finally{
+            return result;
+        }
+    }
+     
     public boolean loggedIn(){
         return loggedInUser != null;
     }

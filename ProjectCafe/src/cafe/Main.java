@@ -771,9 +771,20 @@ public class Main extends Application {
         editUserButton.setPrefHeight(40);
         
         editUserButton.setOnAction((ActionEvent) -> {
-        
+            if(!editUserTextFields.get("email").getText().isEmpty() &&
+               !changeCafeDetailTextFields.get("name").getText().isEmpty() &&
+               !changeCafeDetailTextFields.get("surname").getText().isEmpty() &&
+               !changeCafeDetailTextFields.get("password").getText().isEmpty()
+                    && system.getLoggedInUser() != null){
+                system.changeUserDetail(editUserTextFields.get("name").getText(),
+                        editUserTextFields.get("surname").getText(),
+                        editUserTextFields.get("email").getText(),
+                        editUserTextFields.get("password").getText(),
+                        system.getLoggedInUser().getId());
+                switchToHomeScreen();
+            }
         });
-        
+
         HBox detailsHBox = new HBox();
         detailsHBox.setSpacing(100);
                 
