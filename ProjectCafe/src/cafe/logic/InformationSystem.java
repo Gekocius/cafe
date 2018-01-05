@@ -54,6 +54,22 @@ public class InformationSystem {
             "and (coffee_name like ? or coffee_name is null)\n" +
             "and (offer_name like ? or offer_name is null)\n" +
             "order by cafe_id;";
+    private static final String SQL_SEARCH_ADMIN = "select *\n" +
+            "from " + DB + ".cafe\n" +
+            "left join " + DB + ".admins using(admin_id)\n" +
+            "left join " + DB + ".offered_coffee using(cafe_id)\n" +
+            "left join " + DB + ".offered_so using(cafe_id)\n" +
+            "left join " + DB + ".rating using(cafe_id)\n" +
+            "left join " + DB + ".users using(user_id)\n" +
+            "left join " + DB + ".coffee using(coffee_id)\n" +
+            "left join " + DB + ".special_offer using(offer_id)\n" +
+            "where cafe_name like ?\n" +
+            "and country like ?\n" +
+            "and city like ?\n" +
+            "and street like ?\n" +
+            "and (coffee_name like ? or coffee_name is null)\n" +
+            "and (offer_name like ? or offer_name is null)\n" +
+            "order by cafe_id;";
     private static final String SQL_ADD_COFFEE = "insert into " + DB + ".coffee\n" +
             "(COFFEE_NAME,PRICE)\n" +
             "values (?,?);";
@@ -66,6 +82,13 @@ public class InformationSystem {
     private static final String SQL_ADD_SPECIAL_OFFER_TO_CAFE = "insert into " + DB + ".offered_so\n" +
             "(cafe_id,offer_id)\n" +
             "values (?,?);";
+    private static final String SQL_CHANGE_CAFE_DETAIL = "update " + DB + ".cafe\n" +
+            "set cafe_name = ?,\n" +
+            "country = ?,\n" +
+            "city = ?,\n" +
+            "street = ?,\n" +
+            "active = ?\n" +
+            "where cafe_id = ?;";
     
     
     private User loggedInUser = null;
@@ -128,9 +151,8 @@ public class InformationSystem {
                 statement.setString(i++, coffee_name);
                 statement.setDouble(i++, price);
                 int updatedRecords = statement.executeUpdate();
-                if(updatedRecords == 1){
+                if(updatedRecords == 1)
                     newCoffee = getCoffee(statement, connection, coffee_name, price);
-                }
             }
             if(newCoffee != null){
                 statement = connection.prepareStatement(SQL_ADD_COFFEE_TO_CAFE);
@@ -166,9 +188,8 @@ public class InformationSystem {
                 statement.setDate(i++, endDate);
                 statement.setString(i++, description);
                 int updatedRecords = statement.executeUpdate();
-                if(updatedRecords == 1){
+                if(updatedRecords == 1)
                     newOffer = getSpecialOffer(statement, connection, offer_name, startDate,endDate,description);
-                }
             }
             if(newOffer != null){
                 statement = connection.prepareStatement(SQL_ADD_SPECIAL_OFFER_TO_CAFE);
@@ -197,8 +218,7 @@ public class InformationSystem {
             ResultSet rs = statement.executeQuery();
             if(rs.next())
                 return new Coffee(rs.getInt("coffee_id"), price, coffee_name);
-            else
-                return null;
+            return null;
     }
     
     private SpecialOffer getSpecialOffer(PreparedStatement statement, 
@@ -213,8 +233,7 @@ public class InformationSystem {
             ResultSet rs = statement.executeQuery();
             if(rs.next())
                 return new SpecialOffer(rs.getInt("offer_id"),startDate,endDate,offer_name,description);
-            else
-                return null;
+            return null;
     }
     
     public boolean login(String email,String password){
@@ -255,20 +274,31 @@ public class InformationSystem {
         ResultSet rs;
         try {
             Class.forName(DB_DRIVER);
-            connection = DriverManager.getConnection(DB_CONNECTION, DB_USER, DB_PASSWORD);
-            statement = connection.prepareStatement(SQL_SEARCH);
-            int i = 1;
-            statement.setString(i++, "%" + cafe_name   + "%");
-            statement.setString(i++, "%" + country     + "%");
-            statement.setString(i++, "%" + city        + "%");
-            statement.setString(i++, "%" + street      + "%");
-            statement.setBoolean(i++, active);
-            statement.setString(i++, "%" + coffee_name + "%");
-            statement.setString(i++, "%" + offer_name  + "%");
-            rs = statement.executeQuery();
-            if(rs == null)
-                return retrieveCafes();
+            if(loggedInAsAdmin()){
+                connection = DriverManager.getConnection(DB_CONNECTION, DB_USER, DB_PASSWORD);
+                statement = connection.prepareStatement(SQL_SEARCH_ADMIN);
+                int i = 1;
+                statement.setString(i++, "%" + cafe_name   + "%");
+                statement.setString(i++, "%" + country     + "%");
+                statement.setString(i++, "%" + city        + "%");
+                statement.setString(i++, "%" + street      + "%");
+                statement.setString(i++, "%" + coffee_name + "%");
+                statement.setString(i++, "%" + offer_name  + "%");
+            }
             else{
+                connection = DriverManager.getConnection(DB_CONNECTION, DB_USER, DB_PASSWORD);
+                statement = connection.prepareStatement(SQL_SEARCH);
+                int i = 1;
+                statement.setString(i++, "%" + cafe_name   + "%");
+                statement.setString(i++, "%" + country     + "%");
+                statement.setString(i++, "%" + city        + "%");
+                statement.setString(i++, "%" + street      + "%");
+                statement.setBoolean(i++, active);
+                statement.setString(i++, "%" + coffee_name + "%");
+                statement.setString(i++, "%" + offer_name  + "%");
+            }
+            rs = statement.executeQuery();
+            if(rs != null){
                 boolean hasNext = rs.next();
                 Set<Integer> offerIDs = new HashSet<>(), coffeeIDs = new HashSet<>(), ratingIDs = new HashSet<>();
                 while(hasNext){
@@ -314,6 +344,36 @@ public class InformationSystem {
         }
         finally{
             return retrieveCafes();
+        }
+    }
+    
+    public boolean changeCafeDetail(String cafe_name,String country,String city,String street,
+                                    boolean active,int cafe_id){
+        Connection connection;
+        PreparedStatement statement;
+        boolean result = false;
+        try {
+            Class.forName(DB_DRIVER);
+            connection = DriverManager.getConnection(DB_CONNECTION, DB_USER, DB_PASSWORD);
+            statement = connection.prepareStatement(SQL_CHANGE_CAFE_DETAIL);
+            int i = 1;
+            statement.setString(i++, cafe_name);
+            statement.setString(i++, country  );
+            statement.setString(i++, city     );
+            statement.setString(i++, street   );
+            statement.setBoolean(i++, active);
+            statement.setInt(i++, cafe_id);
+            int updatedLines = statement.executeUpdate();
+            if(updatedLines == 1)
+                result = true;
+            statement.close();
+            connection.close();
+        }
+        catch(SQLException | ClassNotFoundException ex){
+            ex.printStackTrace();
+        }
+        finally{
+            return result;
         }
     }
     

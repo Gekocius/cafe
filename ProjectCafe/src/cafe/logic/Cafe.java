@@ -105,4 +105,19 @@ public class Cafe {
     public List<SpecialOffer> getSpecialOffers() {
         return specialOffers;
     }
+
+    /**
+     * Returns value, which indicates whether the cafe is active or not.
+     * @return active
+     */
+    public boolean isActive() {
+        return active;
+    }
+
+    /**
+     * Changes state of cafe
+     */
+    public void toggleActive() {
+        active = !active;
+    }
 }

@@ -76,6 +76,7 @@ public class Main extends Application {
     private final ListView<String> searchResults = new ListView<>();
     private final TextArea posts = new TextArea();
     private final TextArea postsUser = new TextArea();
+    private final CheckBox isActiveCheckBox = new CheckBox("Is this cafe active?");
     
     private Collection<Cafe> searchResultsComplete = null;
     private Cafe selectedCafe = null;
@@ -263,24 +264,20 @@ public class Main extends Application {
         }
         catch(Exception ex){
             Utilities.messageBox("No such cafe found", "Not found", "Cafe not found", Alert.AlertType.INFORMATION);
-            if(system.loggedInAsAdmin())
-                stage.setScene(homeScreenAdmin);
-            else if(system.loggedIn())
-                stage.setScene(homeScreenUser);
-            else
-                stage.setScene(homeScreen);
+            switchToHomeScreen();
         }
         if(selectedCafe == null)
             return;
         double rating = selectedCafe.getRating();
-        if(!system.loggedInAsAdmin())
-            textFields.get("rating").setText(rating == Double.NaN ? "Not rated yet" : rating + "");
-        else{
+        if(system.loggedInAsAdmin()){
             textFields.get("name").setText(selectedCafe.getName());
             textFields.get("country").setText(selectedCafe.getCountry());
             textFields.get("city").setText(selectedCafe.getCity());
             textFields.get("street").setText(selectedCafe.getStreet());
+            isActiveCheckBox.setSelected(selectedCafe.isActive());
         }
+        else
+            textFields.get("rating").setText(rating == Double.NaN ? "Not rated yet" : rating + "");
         selectedCafe.getCoffees().forEach(coffee -> {
             listViews.get("OFOK").getItems().add(coffee.toString());
         });
@@ -288,6 +285,15 @@ public class Main extends Application {
             listViews.get("special offers").getItems().add(offer.toString());
         });
         stage.setScene(variant);
+    }
+
+    private void switchToHomeScreen() {
+        if(system.loggedInAsAdmin())
+            stage.setScene(homeScreenAdmin);
+        else if(system.loggedIn())
+            stage.setScene(homeScreenUser);
+        else
+            stage.setScene(homeScreen);
     }
     
     private Scene createHomeScreenUser(){
@@ -588,11 +594,8 @@ public class Main extends Application {
         HBox nameHBox = new HBox();
         nameHBox.getChildren().addAll(new Label ("Name"), changeCafeDetailTextFields.get("name"));
         nameHBox.setSpacing(110);
-        
-        CheckBox isActiveCheckBox = new CheckBox("Is this cafe active?");
-        isActiveCheckBox.setSelected(true);
         isActiveCheckBox.setOnAction((ActionEvent) -> {
-        
+            selectedCafe.toggleActive();
         });
         
         HBox locationHBox = new HBox();
@@ -648,7 +651,17 @@ public class Main extends Application {
         changeCafeDetailButton.setPrefHeight(50);
         
         changeCafeDetailButton.setOnAction((ActionEvent) -> {
-        
+            if(!changeCafeDetailTextFields.get("name").getText().isEmpty() &&
+               !changeCafeDetailTextFields.get("country").getText().isEmpty() &&
+               !changeCafeDetailTextFields.get("city").getText().isEmpty() &&
+               !changeCafeDetailTextFields.get("street").getText().isEmpty()){
+                system.changeCafeDetail(changeCafeDetailTextFields.get("name").getText(),
+                                        changeCafeDetailTextFields.get("country").getText(),
+                                        changeCafeDetailTextFields.get("city").getText(),
+                                        changeCafeDetailTextFields.get("street").getText(),
+                                        selectedCafe.isActive(), selectedCafe.getID());
+                switchToHomeScreen();
+            }
         });
         root.getChildren().addAll(new Label("Change cafe detail"), isActiveCheckBox,nameHBox, new Label("Location"), 
                 locationHBox, offersHBox, 
