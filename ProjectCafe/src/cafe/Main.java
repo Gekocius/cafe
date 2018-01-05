@@ -22,6 +22,8 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
@@ -93,16 +95,31 @@ public class Main extends Application {
         homeScreenUser = createHomeScreenUser();
         homeScreenAdmin = createHomeScreenAdmin();
         loginScreen = createLoginScreen();
+        loginScreen.getRoot().setOnKeyPressed(value -> returnToHomeScreen(value));
         registrationScreen = createRegistrationScreen();
+        registrationScreen.getRoot().setOnKeyPressed(value -> returnToHomeScreen(value));
         searchScreen =createSearchScreen();
         cafeDetail = createCafeDetail();
+        cafeDetail.getRoot().setOnKeyPressed(value -> returnToHomeScreen(value));
         cafeDetailUser = createCafeDetailUser();
+        cafeDetailUser.getRoot().setOnKeyPressed(value -> returnToHomeScreen(value));
         postComment = createPostComment();
+        postComment.getRoot().setOnKeyPressed(value -> returnToHomeScreen(value));
         addCafe = createAddCafe();
+        addCafe.getRoot().setOnKeyPressed(value -> returnToHomeScreen(value));
         changeCafeDetail = createChangeCafeDetail();
+        changeCafeDetail.getRoot().setOnKeyPressed(value -> returnToHomeScreen(value));
         findUser = createFindUser();
+        findUser.getRoot().setOnKeyPressed(value -> returnToHomeScreen(value));
         editUser = createEditUser();
+        editUser.getRoot().setOnKeyPressed(value -> returnToHomeScreen(value));
         editUserAdmin = createEditUserAdmin();
+        editUserAdmin.getRoot().setOnKeyPressed(value -> returnToHomeScreen(value));
+    }
+
+    private void returnToHomeScreen(KeyEvent value) {
+        if(value.getCode().equals(KeyCode.ESCAPE))
+            switchToHomeScreen();
     }
     
     @Override
