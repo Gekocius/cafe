@@ -6,6 +6,13 @@ import java.util.List;
 public class Cafe {
 
     /**
+     * @return the posts
+     */
+    public List<Post> getPosts() {
+        return posts;
+    }
+
+    /**
      * @return the country
      */
     public String getCountry() {
@@ -66,7 +73,7 @@ public class Cafe {
 	}
         
         public void addPost(Post post){
-            posts.add(post);
+            getPosts().add(post);
         }
         
         public void addRating(Rating rating){

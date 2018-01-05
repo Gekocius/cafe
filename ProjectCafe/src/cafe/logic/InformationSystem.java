@@ -44,6 +44,7 @@ public class InformationSystem {
             "left join " + DB + ".offered_so using(cafe_id)\n" +
             "left join " + DB + ".rating using(cafe_id)\n" +
             "left join " + DB + ".users using(user_id)\n" +
+            "left join " + DB + ".post using(cafe_id)\n" +
             "left join " + DB + ".coffee using(coffee_id)\n" +
             "left join " + DB + ".special_offer using(offer_id)\n" +
             "where cafe_name like ?\n" +
@@ -61,6 +62,7 @@ public class InformationSystem {
             "left join " + DB + ".offered_so using(cafe_id)\n" +
             "left join " + DB + ".rating using(cafe_id)\n" +
             "left join " + DB + ".users using(user_id)\n" +
+            "left join " + DB + ".post using(cafe_id)\n" +
             "left join " + DB + ".coffee using(coffee_id)\n" +
             "left join " + DB + ".special_offer using(offer_id)\n" +
             "where cafe_name like ?\n" +
@@ -91,6 +93,9 @@ public class InformationSystem {
             "where cafe_id = ?;";
     private static final String SQL_ADD_RATING = "insert into " + DB + ".rating\n" +
             "(user_id,cafe_id,stars)\n" +
+            "values (?,?,?);";
+    private static final String SQL_ADD_POST = "insert into " + DB + ".post\n" +
+            "(user_id,cafe_id,post_text)\n" +
             "values (?,?,?);";
     
     
@@ -144,6 +149,32 @@ public class InformationSystem {
             statement.setInt(i++, user_id);
             statement.setInt(i++, cafe_id);
             statement.setDouble(i++, stars);
+            int updatedRecords = statement.executeUpdate();
+            if(updatedRecords == 1)
+                result = true;
+            statement.close();
+            connection.close();
+        }
+        catch(SQLException | ClassNotFoundException ex){
+            ex.printStackTrace();
+        }
+        finally{
+            return result;
+        }
+    }
+
+    public boolean post(int user_id,int cafe_id,String post_text){
+        Connection connection;
+        PreparedStatement statement = null;
+        boolean result = false;
+        try {
+            Class.forName(DB_DRIVER);
+            connection = DriverManager.getConnection(DB_CONNECTION, DB_USER, DB_PASSWORD);
+            statement = connection.prepareStatement(SQL_ADD_POST);
+            int i = 1;
+            statement.setInt(i++, user_id);
+            statement.setInt(i++, cafe_id);
+            statement.setString(i++, post_text);
             int updatedRecords = statement.executeUpdate();
             if(updatedRecords == 1)
                 result = true;
@@ -329,7 +360,8 @@ public class InformationSystem {
             rs = statement.executeQuery();
             if(rs != null){
                 boolean hasNext = rs.next();
-                Set<Integer> offerIDs = new HashSet<>(), coffeeIDs = new HashSet<>(), ratingIDs = new HashSet<>();
+                Set<Integer> offerIDs = new HashSet<>(), coffeeIDs = new HashSet<>(),
+                        ratingIDs = new HashSet<>(), postIDs = new HashSet<>();
                 while(hasNext){
                     final int cafeID = rs.getInt("cafe_id");
                     Cafe nextCafe = new Cafe(cafeID,rs.getString("cafe_name"),
@@ -358,6 +390,14 @@ public class InformationSystem {
                                                         rs.getString("user_surname"), rs.getString("user_password")),
                                                nextCafe));
                             ratingIDs.add(rating_id);
+                        }
+                        final int post_id = rs.getInt("post_id");
+                        if(!rs.wasNull() && !postIDs.contains(post_id)){
+                            nextCafe.addPost(  new Post(post_id,rs.getString("post_text"),
+                                               new User(rs.getInt("user_id"),rs.getString("email"), rs.getString("user_name"), 
+                                                        rs.getString("user_surname"), rs.getString("user_password")),
+                                               nextCafe));
+                            postIDs.add(rating_id);
                         }
                         hasNext = rs.next();
                     }while(hasNext && rs.getInt("cafe_id") == cafeID);
@@ -407,11 +447,11 @@ public class InformationSystem {
     }
     
     public boolean loggedIn(){
-        return getLoggedInUser() != null;
+        return loggedInUser != null;
     }
     
     public boolean loggedInAsAdmin(){
-        return getLoggedInUser() != null && getLoggedInUser() instanceof Admin;
+        return loggedInUser != null && loggedInUser instanceof Admin;
     }
     
     public void logout(){

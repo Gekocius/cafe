@@ -87,8 +87,8 @@ public class Main extends Application {
     private Stage stage;
     
     public Main(){
-        posts.setDisable(true);
-        postsUser.setDisable(true);
+        posts.setEditable(false);
+        postsUser.setEditable(false);
         createTextFields();
         createListViews();
         homeScreen = createHomeScreen();
@@ -100,9 +100,15 @@ public class Main extends Application {
         registrationScreen.getRoot().setOnKeyPressed(value -> returnToHomeScreen(value));
         searchScreen =createSearchScreen();
         cafeDetail = createCafeDetail();
-        cafeDetail.getRoot().setOnKeyPressed(value -> returnToHomeScreen(value));
+        cafeDetail.getRoot().setOnKeyPressed(value -> {
+            returnToHomeScreen(value);
+            posts.clear();
+        });
         cafeDetailUser = createCafeDetailUser();
-        cafeDetailUser.getRoot().setOnKeyPressed(value -> returnToHomeScreen(value));
+        cafeDetailUser.getRoot().setOnKeyPressed(value -> {
+            returnToHomeScreen(value);
+            postsUser.clear();
+        });
         postComment = createPostComment();
         postComment.getRoot().setOnKeyPressed(value -> returnToHomeScreen(value));
         addCafe = createAddCafe();
@@ -293,8 +299,13 @@ public class Main extends Application {
             textFields.get("street").setText(selectedCafe.getStreet());
             isActiveCheckBox.setSelected(selectedCafe.isActive());
         }
-        else
+        else{
             textFields.get("rating").setText(rating == Double.NaN ? "Not rated yet" : rating + "");
+            if(system.loggedIn())
+                selectedCafe.getPosts().forEach(post -> postsUser.appendText(post.toString()));
+            else
+                selectedCafe.getPosts().forEach(post -> posts.appendText(post.toString()));
+        }
         selectedCafe.getCoffees().forEach(coffee -> {
             listViews.get("OFOK").getItems().add(coffee.toString());
         });
@@ -489,7 +500,7 @@ public class Main extends Application {
         
         
         ratingHBox.getChildren().addAll(new Label("Rating:"),cafeDetailTextFields.get("rating"));
-        cafeDetailTextFields.get("rating").setDisable(true);
+        cafeDetailTextFields.get("rating").setEditable(false);
         ratingHBox.setMaxHeight(10);
         root.getChildren().addAll(cafeDetailLabel,ratingHBox, kindsOfCafeHBox, postsHBox, posts);
         return new Scene(root,640,480);
@@ -549,7 +560,13 @@ public class Main extends Application {
         VBox root = new VBox();
         Button postCommentButton = new Button("Post");
         postCommentButton.setPrefWidth(250);
-        
+        postCommentButton.setOnAction((ActionEvent) -> {
+            String comment = postCommentTextFields.get("comment").getText();
+            if(!comment.isEmpty()){
+                system.post(system.getLoggedInUser().getId(), selectedCafe.getID(), comment);
+                switchToHomeScreen();
+            }
+        });
         root.setAlignment(Pos.CENTER);
         root.setSpacing(5);
         root.getChildren().addAll(new Label("Post a comment"), postCommentTextFields.get("comment"), postCommentButton);

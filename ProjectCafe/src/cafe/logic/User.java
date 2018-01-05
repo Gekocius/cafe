@@ -51,4 +51,18 @@ public class User {
     public int getId() {
         return id;
     }
+
+    /**
+     * @return the name
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * @return the surname
+     */
+    public String getSurname() {
+        return surname;
+    }
 }
