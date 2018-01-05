@@ -489,6 +489,7 @@ public class Main extends Application {
         
         
         ratingHBox.getChildren().addAll(new Label("Rating:"),cafeDetailTextFields.get("rating"));
+        cafeDetailTextFields.get("rating").setDisable(true);
         ratingHBox.setMaxHeight(10);
         root.getChildren().addAll(cafeDetailLabel,ratingHBox, kindsOfCafeHBox, postsHBox, posts);
         return new Scene(root,640,480);
@@ -513,8 +514,14 @@ public class Main extends Application {
         });
         
         addRatingButton.setOnAction((ActionEvent) -> {
-        
-        
+            String ratingS = cafeDetailUserTextFields.get("rating").getText();
+            if(!ratingS.isEmpty()){
+                double rating = Double.parseDouble(ratingS);
+                if(rating >= 0 && rating <= 5)
+                    system.rate(system.getLoggedInUser().getId(), selectedCafe.getID(),rating);
+                else
+                    Utilities.messageBox("Rating must be in range 0-5.", "Rating out of range", "Rating out of range", Alert.AlertType.ERROR);
+            }
         });
         
       

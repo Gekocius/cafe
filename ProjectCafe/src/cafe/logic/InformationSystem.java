@@ -89,6 +89,9 @@ public class InformationSystem {
             "street = ?,\n" +
             "active = ?\n" +
             "where cafe_id = ?;";
+    private static final String SQL_ADD_RATING = "insert into " + DB + ".rating\n" +
+            "(user_id,cafe_id,stars)\n" +
+            "values (?,?,?);";
     
     
     private User loggedInUser = null;
@@ -118,6 +121,32 @@ public class InformationSystem {
                 if(updatedRecords == 1)
                     result = true;
             }
+            statement.close();
+            connection.close();
+        }
+        catch(SQLException | ClassNotFoundException ex){
+            ex.printStackTrace();
+        }
+        finally{
+            return result;
+        }
+    }
+
+    public boolean rate(int user_id,int cafe_id,double stars){
+        Connection connection;
+        PreparedStatement statement = null;
+        boolean result = false;
+        try {
+            Class.forName(DB_DRIVER);
+            connection = DriverManager.getConnection(DB_CONNECTION, DB_USER, DB_PASSWORD);
+            statement = connection.prepareStatement(SQL_ADD_RATING);
+            int i = 1;
+            statement.setInt(i++, user_id);
+            statement.setInt(i++, cafe_id);
+            statement.setDouble(i++, stars);
+            int updatedRecords = statement.executeUpdate();
+            if(updatedRecords == 1)
+                result = true;
             statement.close();
             connection.close();
         }
@@ -378,14 +407,22 @@ public class InformationSystem {
     }
     
     public boolean loggedIn(){
-        return loggedInUser != null;
+        return getLoggedInUser() != null;
     }
     
     public boolean loggedInAsAdmin(){
-        return loggedInUser != null && loggedInUser instanceof Admin;
+        return getLoggedInUser() != null && getLoggedInUser() instanceof Admin;
     }
     
     public void logout(){
         loggedInUser = null;
+    }
+
+    /**
+     * Returns user, who is logged in.
+     * @return the loggedInUser
+     */
+    public User getLoggedInUser() {
+        return loggedInUser;
     }
 }

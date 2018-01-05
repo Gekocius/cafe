@@ -43,4 +43,12 @@ public class User {
 	public void postAboutCafe() {
             throw new UnsupportedOperationException();
 	}
+
+    /**
+     * Return user's ID.
+     * @return the id
+     */
+    public int getId() {
+        return id;
+    }
 }
