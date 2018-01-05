@@ -8,6 +8,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 public class InformationSystem {
     private static final String DB_DRIVER = "com.mysql.jdbc.Driver";
@@ -51,7 +53,7 @@ public class InformationSystem {
             "and active = ?\n" +
             "and (coffee_name like ? or coffee_name is null)\n" +
             "and (offer_name like ? or offer_name is null)\n" +
-            "order by cafe_id,coffee_id,offer_id,rating_id;";
+            "order by cafe_id;";
     private static final String SQL_ADD_COFFEE = "insert into " + DB + ".coffee\n" +
             "(COFFEE_NAME,PRICE)\n" +
             "values (?,?);";
@@ -268,7 +270,7 @@ public class InformationSystem {
                 return retrieveCafes();
             else{
                 boolean hasNext = rs.next();
-                int lastOfferID = 0, lastCoffeeID = 0, lastRatingID = 0;
+                Set<Integer> offerIDs = new HashSet<>(), coffeeIDs = new HashSet<>(), ratingIDs = new HashSet<>();
                 while(hasNext){
                     final int cafeID = rs.getInt("cafe_id");
                     Cafe nextCafe = new Cafe(cafeID,rs.getString("cafe_name"),
@@ -278,25 +280,25 @@ public class InformationSystem {
                                         rs.getString("admin_surname"), rs.getString("admin_password")));
                     do{
                         final int offer_id = rs.getInt("offer_id");
-                        if(!rs.wasNull() && offer_id != lastOfferID){
+                        if(!rs.wasNull() && !offerIDs.contains(offer_id)){
                             nextCafe.addSpecialOffer(new SpecialOffer(offer_id,
                                     rs.getDate("start_date"),rs.getDate("end_date"),
                                     rs.getString("offer_name"),rs.getString("description")));
-                            lastOfferID = offer_id;
+                            offerIDs.add(offer_id);
                         }
                         final int coffee_id = rs.getInt("coffee_id");
-                        if(!rs.wasNull() && coffee_id != lastCoffeeID){
+                        if(!rs.wasNull() && !coffeeIDs.contains(coffee_id)){
                             nextCafe.addCoffee(new Coffee(coffee_id,rs.getDouble("price"),
                                     rs.getString("coffee_name")));
-                            lastCoffeeID = coffee_id;
+                            coffeeIDs.add(coffee_id);
                         }
                         final int rating_id = rs.getInt("rating_id");
-                        if(!rs.wasNull() && rating_id != lastRatingID){
+                        if(!rs.wasNull() && !ratingIDs.contains(rating_id)){
                             nextCafe.addRating(new Rating(rating_id,rs.getDouble("stars"),
                                                new User(rs.getInt("user_id"),rs.getString("email"), rs.getString("user_name"), 
                                                         rs.getString("user_surname"), rs.getString("user_password")),
                                                nextCafe));
-                            lastRatingID = rating_id;
+                            ratingIDs.add(rating_id);
                         }
                         hasNext = rs.next();
                     }while(hasNext && rs.getInt("cafe_id") == cafeID);
