@@ -48,7 +48,7 @@ create table POST (
 	POST_ID			integer			not null	AUTO_INCREMENT,
     USER_ID			integer,
     CAFE_ID			integer,
-    POST_TEXT		integer			not null,
+    POST_TEXT			varchar(100)		not null,
     constraint PK_POST primary key (POST_ID)
 );
 
