@@ -35,7 +35,7 @@ import util.Utilities;
 
 
 /**
- *
+ * Class for UI and user input checks.
  * @author David Fuchs
  */
 public class Main extends Application {
@@ -86,6 +86,9 @@ public class Main extends Application {
     
     private Stage stage;
     
+    /**
+     * Initializes GUI elements.
+     */
     public Main(){
         posts.setEditable(false);
         postsUser.setEditable(false);
@@ -123,19 +126,30 @@ public class Main extends Application {
         editUserAdmin.getRoot().setOnKeyPressed(value -> returnToHomeScreen(value));
     }
 
+    /**
+     * Handles user's requests to return to home screen.
+     * @param value 
+     */
     private void returnToHomeScreen(KeyEvent value) {
         if(value.getCode().equals(KeyCode.ESCAPE))
             switchToHomeScreen();
     }
     
+    /**
+     * Initializes primary stage.
+     * @param primaryStage 
+     */
     @Override
     public void start(Stage primaryStage) {
         stage = primaryStage;
         stage.setScene(homeScreen);
-        primaryStage.setTitle("Cafe");
-        primaryStage.show();
+        stage.setTitle("Cafe");
+        stage.show();
     }
     
+    /**
+     * Creates list views for displaying various lists.
+     */
     private void createListViews(){
         cafeDetailListViews.put("OFOK",new ListView<>());
         cafeDetailListViews.put("special offers",new ListView<>());
@@ -145,6 +159,9 @@ public class Main extends Application {
         changeCafeDetailListViews.put("special offers", new ListView<>());
     }
 
+    /**
+     * Creates text fields needed for user input.
+     */
     private void createTextFields() {
         homeScreenTextFields.put("cafe name", new TextField());
         homeScreenTextFields.put("country", new TextField());
@@ -203,6 +220,10 @@ public class Main extends Application {
 
     }
     
+    /**
+     * Creates home screen and sets button actions.
+     * @return 
+     */
     private Scene createHomeScreen(){
         BorderPane root = new BorderPane();
         VBox home = new VBox();
@@ -241,6 +262,10 @@ public class Main extends Application {
         return new Scene(root,640,480);
     }
 
+    /**
+     * Starts database search and displays the results on the search screen.
+     * @param textFields 
+     */
     private void search(Map<String,TextField> textFields) {
         selectedCafe = null;
         searchResults.getItems().removeIf(filter -> {return true;});
@@ -252,13 +277,17 @@ public class Main extends Application {
                         true,
                         textFields.get("coffee").getText(),
                         textFields.get("special offer").getText(),
-                        getMinimalRating());
+                        getDouble(homeScreenTextFields.get("minimal rating").getText()));
         searchResultsComplete.stream().map(cafe -> cafe.getName()).forEach(cafe_name -> {
             searchResults.getItems().add(cafe_name);
         });
         stage.setScene(searchScreen);
     }
     
+    /**
+     * Creates search screen and sets actions.
+     * @return 
+     */
     private Scene createSearchScreen(){
         VBox root = new VBox();
         root.setPadding(new Insets(10));
@@ -279,6 +308,12 @@ public class Main extends Application {
         return new Scene(root,640,480);
     }
 
+    /**
+     * Creates cafe detail screen and sets button actions.
+     * @param variant
+     * @param textFields
+     * @param listViews 
+     */
     private void viewCafeDetail(Scene variant,Map<String,TextField> textFields,Map<String,ListView<String>> listViews) {
         try{
             selectedCafe = searchResultsComplete.stream().filter(cafe -> {
@@ -315,6 +350,10 @@ public class Main extends Application {
         stage.setScene(variant);
     }
 
+    /**
+     * Switches to the correct home screen depending on the kind of user,
+     * who is logged in. Might be requested by user or the application itself.
+     */
     private void switchToHomeScreen() {
         if(system.loggedInAsAdmin())
             stage.setScene(homeScreenAdmin);
@@ -324,6 +363,11 @@ public class Main extends Application {
             stage.setScene(homeScreen);
     }
     
+    /**
+     * Creates home screen and sets button actions.
+     * Home screen looks different when a user is logged in.
+     * @return 
+     */
     private Scene createHomeScreenUser(){
         BorderPane root = new BorderPane();
         VBox home = new VBox();
@@ -364,6 +408,11 @@ public class Main extends Application {
         return new Scene(root,640,480);
     }
     
+    /**
+     * Creates home screen and sets button actions.
+     * Home screen looks different when an admin is logged in.
+     * @return 
+     */
     private Scene createHomeScreenAdmin(){
         BorderPane root = new BorderPane();
         VBox home = new VBox();
@@ -404,6 +453,11 @@ public class Main extends Application {
         return new Scene(root,640,480);
     }
     
+    /**
+     * Creates screen that allows the user to input login information
+     * and passes that information to the class responsible for application logic.
+     * @return 
+     */
     private Scene createLoginScreen(){
         BorderPane root = new BorderPane();
         VBox center = new VBox();
@@ -411,10 +465,7 @@ public class Main extends Application {
         login.setOnAction((ActionEvent) -> {
             if(system.login(loginScreenTextFields.get("email").getText().toLowerCase(Locale.ROOT),
                          loginScreenTextFields.get("password").getText())){
-                if(system.loggedInAsAdmin())
-                    stage.setScene(homeScreenAdmin);
-                else
-                    stage.setScene(homeScreenUser);
+                switchToHomeScreen();
                 loginScreenTextFields.values().forEach(textField -> {textField.clear();});
             }
             else
@@ -430,6 +481,11 @@ public class Main extends Application {
         return new Scene(root,640,240);
     }
     
+    /**
+     * Creates screen that allows the user to input registration information
+     * and passes that to the class handling application logic.
+     * @return 
+     */
     private Scene createRegistrationScreen(){
         BorderPane root = new BorderPane();
         VBox left = new VBox();
@@ -446,7 +502,7 @@ public class Main extends Application {
                             registrationScreenTextFields.get("name").getText(),
                             registrationScreenTextFields.get("surname").getText(),
                             registrationScreenTextFields.get("password").getText())){
-                stage.setScene(homeScreen);
+                switchToHomeScreen();
                 registrationScreenTextFields.values().forEach(textField -> {
                     textField.clear();
                 });
@@ -477,6 +533,11 @@ public class Main extends Application {
         return new Scene(root,640,240);
     }
     
+    /**
+     * Create screen for displaying cafe information to users,
+     * who are not logged in.
+     * @return 
+     */
     private Scene createCafeDetail(){
         VBox root = new VBox();
         Label cafeDetailLabel = new Label("Cafe detail");
@@ -506,6 +567,11 @@ public class Main extends Application {
         return new Scene(root,640,480);
     }
     
+    /**
+     * Create screen for displaying cafe information to users,
+     * who are logged in.
+     * @return 
+     */
     private Scene createCafeDetailUser(){
         VBox root = new VBox();
         Label cafeDetailLabel = new Label("Cafe detail");
@@ -556,6 +622,10 @@ public class Main extends Application {
         return new Scene(root,640,480);
     }
     
+    /**
+     * Create screen with input fields necessary for posting comments.
+     * @return 
+     */
     private Scene createPostComment(){
         VBox root = new VBox();
         Button postCommentButton = new Button("Post");
@@ -573,6 +643,10 @@ public class Main extends Application {
         return new Scene(root, 640,480);
     }
     
+    /**
+     * Create a screen with input controls necessary for adding a new cafe.
+     * @return 
+     */
     private Scene createAddCafe(){
         VBox root = new VBox();
         
@@ -628,7 +702,11 @@ public class Main extends Application {
         return new Scene(root, 640,480);
     }
     
-    
+    /**
+     * Create screen with controls necessary for changing an existing cafe's
+     * information.
+     * @return 
+     */
     private Scene createChangeCafeDetail(){
         VBox root = new VBox();
         
@@ -712,6 +790,12 @@ public class Main extends Application {
         return new Scene(root, 640,480);
     }
     
+    /**
+     * Handles input of a new kind of coffee.
+     * @param userInput
+     * @param cafe_id
+     * @return 
+     */
     private Coffee readNewKindOfCoffee(String userInput,int cafe_id){
         Pattern coffeeFormat = Pattern.compile("^(\\w+):\\s+(\\d+(?:\\.\\d+)?)$");
         Matcher matcher = coffeeFormat.matcher(userInput);
@@ -721,6 +805,12 @@ public class Main extends Application {
             return null;
     }
     
+    /**
+     * Handles input of a new special offer.
+     * @param userInput
+     * @param cafe_id
+     * @return 
+     */
     private SpecialOffer readNewSpecialOffer(String userInput,int cafe_id){
         Pattern coffeeFormat = Pattern.compile("^(\\w+(?:\\s\\w+)*):\\s+(\\d+)\\.(\\d+)\\.(\\d+)-(\\d+)\\.(\\d+)\\.(\\d+)\\s+(\\w+(?:\\s\\w+)*)$");
         Matcher matcher = coffeeFormat.matcher(userInput);
@@ -733,6 +823,10 @@ public class Main extends Application {
         return null;
     }
     
+    /**
+     * Create screen for searching for a user.
+     * @return 
+     */
     private Scene createFindUser(){
         VBox root = new VBox();
         Button findUserButton = new Button("Find user");
@@ -763,7 +857,10 @@ public class Main extends Application {
     }
 
     
-    
+    /**
+     * Create screen for editing a user's own profile.
+     * @return 
+     */
     private Scene createEditUser(){
         VBox root = new VBox();
         Button editUserButton = new Button("Change your profile information");
@@ -804,6 +901,10 @@ public class Main extends Application {
         return new Scene(root, 640, 200);
     }
     
+    /**
+     * Create screen for editing user profile by admin.
+     * @return 
+     */
     private Scene createEditUserAdmin(){
         VBox root = new VBox();
         Button editUserButton = new Button("Change profile information");
@@ -838,20 +939,28 @@ public class Main extends Application {
     }
     
     
-    
+    /**
+     * Validate an email address.
+     * @param email
+     * @return 
+     */
     private boolean validEmail(String email){
         return email.contains("@");
     }
 
     /**
+     * Application entry point
      * @param args the command line arguments
      */
     public static void main(String[] args) {
         launch(args);
     }
     
-    private double getMinimalRating(){
-        String rating = homeScreenTextFields.get("minimal rating").getText();
-        return !rating.isEmpty() ? Double.parseDouble(rating) : 0;
+    /**
+     * Support method for parsing doubles.
+     * @return 
+     */
+    private double getDouble(String text){
+        return !text.isEmpty() ? Double.parseDouble(text) : 0;
     }
 }

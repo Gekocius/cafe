@@ -11,6 +11,10 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Class used for application logic.
+ * @author David Fuchs
+ */
 public class InformationSystem {
     private static final String DB_DRIVER = "com.mysql.jdbc.Driver";
     private static final String DB_CONNECTION = "jdbc:mysql://localhost:3306/?useSSL=false";
@@ -110,10 +114,22 @@ public class InformationSystem {
     
     private final Collection<Cafe> cafes = new ArrayList<>();
 
+    /**
+     * Get cafes stored locally.
+     * @return 
+     */
     public Collection<Cafe> retrieveCafes() {
             return cafes;
     }
 
+    /**
+     * Create a new user in the database.
+     * @param email
+     * @param name
+     * @param surname
+     * @param password
+     * @return 
+     */
     public boolean createUser(String email,String name,String surname,String password){
         Connection connection;
         PreparedStatement statement = null;
@@ -144,6 +160,13 @@ public class InformationSystem {
         }
     }
 
+    /**
+     * Add a rating into the database.
+     * @param user_id
+     * @param cafe_id
+     * @param stars
+     * @return 
+     */
     public boolean rate(int user_id,int cafe_id,double stars){
         Connection connection;
         PreparedStatement statement = null;
@@ -170,6 +193,13 @@ public class InformationSystem {
         }
     }
 
+    /**
+     * Add a post into the database.
+     * @param user_id
+     * @param cafe_id
+     * @param post_text
+     * @return 
+     */
     public boolean post(int user_id,int cafe_id,String post_text){
         Connection connection;
         PreparedStatement statement = null;
@@ -196,6 +226,14 @@ public class InformationSystem {
         }
     }
     
+    /**
+     * Check the existence of a user account.
+     * @param statement
+     * @param connection
+     * @param email
+     * @return
+     * @throws SQLException 
+     */
     private boolean accountExists(PreparedStatement statement, 
                                             Connection connection,
                                             String email) throws SQLException{
@@ -204,6 +242,13 @@ public class InformationSystem {
             return statement.executeQuery().next();
     }
 
+    /**
+     * Create a new kind of coffee in the database.
+     * @param cafe_id
+     * @param coffee_name
+     * @param price
+     * @return 
+     */
     public Coffee createCoffee(int cafe_id,String coffee_name,double price){
         Connection connection;
         PreparedStatement statement = null;
@@ -239,6 +284,15 @@ public class InformationSystem {
         }
     }
 
+    /**
+     * Create a new special offer in the database.
+     * @param cafe_id
+     * @param offer_name
+     * @param startDate
+     * @param endDate
+     * @param description
+     * @return 
+     */
     public SpecialOffer createSpecialOffer(int cafe_id,String offer_name,Date startDate,Date endDate,String description){
         Connection connection;
         PreparedStatement statement = null;
@@ -276,6 +330,15 @@ public class InformationSystem {
         }
     }
     
+    /**
+     * Get a coffee from the database.
+     * @param statement
+     * @param connection
+     * @param coffee_name
+     * @param price
+     * @return
+     * @throws SQLException 
+     */
     private Coffee getCoffee(PreparedStatement statement, 
                              Connection connection,
                              String coffee_name, double price) throws SQLException{
@@ -288,6 +351,17 @@ public class InformationSystem {
             return null;
     }
     
+    /**
+     * Get a special offer from the database.
+     * @param statement
+     * @param connection
+     * @param offer_name
+     * @param startDate
+     * @param endDate
+     * @param description
+     * @return
+     * @throws SQLException 
+     */
     private SpecialOffer getSpecialOffer(PreparedStatement statement, 
                              Connection connection,
                              String offer_name, Date startDate,Date endDate,String description) throws SQLException{
@@ -303,6 +377,12 @@ public class InformationSystem {
             return null;
     }
     
+    /**
+     * Login a user by matching entered credentials against credentials stored in the database.
+     * @param email
+     * @param password
+     * @return 
+     */
     public boolean login(String email,String password){
         Connection connection;
         PreparedStatement statement;
@@ -333,6 +413,18 @@ public class InformationSystem {
         }
     }
     
+    /**
+     * Get all cafes respecting specified conditions.
+     * @param cafe_name
+     * @param country
+     * @param city
+     * @param street
+     * @param active
+     * @param coffee_name
+     * @param offer_name
+     * @param minimalRating
+     * @return 
+     */
     public Collection<Cafe> search(String cafe_name,String country,String city,String street,
                                    boolean active,String coffee_name,String offer_name,double minimalRating){
         cafes.removeAll(cafes);
@@ -423,6 +515,16 @@ public class InformationSystem {
         }
     }
     
+    /**
+     * Modify cafe's detail in the database.
+     * @param cafe_name
+     * @param country
+     * @param city
+     * @param street
+     * @param active
+     * @param cafe_id
+     * @return 
+     */
     public boolean changeCafeDetail(String cafe_name,String country,String city,String street,
                                     boolean active,int cafe_id){
         Connection connection;
@@ -453,6 +555,15 @@ public class InformationSystem {
         }
     }
     
+    /**
+     * Modify user's details in the database.
+     * @param user_name
+     * @param user_surname
+     * @param email
+     * @param user_password
+     * @param uid
+     * @return 
+     */
     public boolean changeUserDetail(String user_name,String user_surname,String email,String user_password, int uid){
         Connection connection;
         PreparedStatement statement;
@@ -482,14 +593,25 @@ public class InformationSystem {
         }
     }
      
+    /**
+     * Indicates whether a user is logged in.
+     * @return 
+     */
     public boolean loggedIn(){
         return loggedInUser != null;
     }
     
+    /**
+     * Indicates whether an admin is logged in.
+     * @return 
+     */
     public boolean loggedInAsAdmin(){
         return loggedInUser != null && loggedInUser instanceof Admin;
     }
     
+    /**
+     * Logout currently logged in user.
+     */
     public void logout(){
         loggedInUser = null;
     }
