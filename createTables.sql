@@ -99,3 +99,6 @@ alter table OFFERED_SO
 alter table CAFE
 	add constraint FK_CAFE_ADMIN foreign key (ADMIN_ID)
 		references USERS(USER_ID);
+insert into users
+(user_name,user_surname,email,user_password,admin,banned)
+values('admin','admin','admin@xyz','admin',true,false);
