@@ -7,6 +7,7 @@ create table USERS (
     EMAIL			varchar(100)	not null,
     USER_PASSWORD	varchar(100)	not null,
     ADMIN			boolean			not null,
+    BANNED			boolean			not null,
     constraint PK_USERS primary key (USER_ID)
 );
 create view ADMINS as
@@ -48,7 +49,7 @@ create table POST (
 	POST_ID			integer			not null	AUTO_INCREMENT,
     USER_ID			integer,
     CAFE_ID			integer,
-    POST_TEXT			varchar(100)		not null,
+    POST_TEXT		varchar(100)	not null,
     constraint PK_POST primary key (POST_ID)
 );
 
