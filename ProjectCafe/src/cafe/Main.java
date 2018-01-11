@@ -4,6 +4,7 @@ import cafe.logic.Cafe;
 import cafe.logic.Coffee;
 import cafe.logic.InformationSystem;
 import cafe.logic.SpecialOffer;
+import cafe.logic.User;
 import java.sql.Date;
 import java.util.Collection;
 import java.util.HashMap;
@@ -12,6 +13,8 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javafx.application.Application;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -56,8 +59,6 @@ public class Main extends Application {
     private final Scene editUser;
     private final Scene editUserAdmin;
     
-    
-    
     private final Map<String,TextField> homeScreenTextFields = new HashMap<>();
     private final Map<String,TextField> homeScreenUserTextFields = new HashMap<>();
     private final Map<String,TextField> homeScreenAdminTextFields = new HashMap<>();
@@ -82,9 +83,10 @@ public class Main extends Application {
     
     private Collection<Cafe> searchResultsComplete = null;
     private Cafe selectedCafe = null;
-    
+    private User selectedUser = null;
     
     private Stage stage;
+
     
     /**
      * Initializes GUI elements.
@@ -208,8 +210,6 @@ public class Main extends Application {
         changeCafeDetailTextFields.put("add new kind", new TextField());
         changeCafeDetailTextFields.put("add new special", new TextField());
         findUserTextFields.put("e-mail", new TextField());
-        findUserTextFields.put("name", new TextField());
-        findUserTextFields.put("surname", new TextField());
         editUserTextFields.put("e-mail", new TextField());
         editUserTextFields.put("name", new TextField());
         editUserTextFields.put("surname", new TextField());
@@ -421,6 +421,7 @@ public class Main extends Application {
         VBox home = new VBox();
         HBox top = new HBox();
         Button  editUser = new Button("Edit user"),
+                addCafeBtn = new Button("Add cafe"),
                 logout = new Button("Log out"),
                 search = new Button("Request search results");
         editUser.setOnAction((ActionEvent) -> {
@@ -434,7 +435,10 @@ public class Main extends Application {
         search.setOnAction((ActionEvent) -> {
             search(homeScreenAdminTextFields);
         });
-        top.getChildren().addAll(homeScreenAdminTextFields.get("cafe name"),editUser,logout);
+        addCafeBtn.setOnAction((ActionEvent) -> {
+            stage.setScene(addCafe);
+        });
+        top.getChildren().addAll(homeScreenAdminTextFields.get("cafe name"),editUser,addCafeBtn,logout);
         FlowPane country = new FlowPane();
         country.getChildren().addAll(new Label("Country"),homeScreenAdminTextFields.get("country"));
         FlowPane city = new FlowPane();
@@ -668,37 +672,46 @@ public class Main extends Application {
         
         locationHBox.getChildren().addAll(labelsLocationVBox, textFieldsVBox);
         locationHBox.setSpacing(100);
-        
-        HBox offersHBox = new HBox();
-        VBox addKindsVBox = new VBox();
-        VBox addSpecialOfVBox = new VBox();
-        Button addNewKindButton = new Button("Add new kind of coffee");
-        Button addNewSpecialButton = new Button("Add new special offer");
-          
-        addNewKindButton.setOnAction((ActionEvent) -> {
-        
-        });
-        addNewSpecialButton.setOnAction((ActionEvent) -> {
-        
-        });
-            
-        addKindsVBox.getChildren().addAll(new Label("Offered kinds of coffee"), addCafeTextFields.get("offered kinds"),
-                new Label("Kind of coffee"), addCafeTextFields.get("add new kind"), addNewKindButton);
-        
-        addSpecialOfVBox.getChildren().addAll(new Label("Special offers"), addCafeTextFields.get("special offers"),
-                new Label("Special offer"), addCafeTextFields.get("add new special"), addNewSpecialButton);
-       
-        offersHBox.getChildren().addAll(addKindsVBox, addSpecialOfVBox);
-        offersHBox.setSpacing(150);
+//        
+//        HBox offersHBox = new HBox();
+//        VBox addKindsVBox = new VBox();
+//        VBox addSpecialOfVBox = new VBox();
+//        Button addNewKindButton = new Button("Add new kind of coffee");
+//        Button addNewSpecialButton = new Button("Add new special offer");
+//          
+//        addNewKindButton.setOnAction((ActionEvent) -> {
+//        
+//        });
+//        addNewSpecialButton.setOnAction((ActionEvent) -> {
+//        
+//        });
+//            
+//        addKindsVBox.getChildren().addAll(new Label("Offered kinds of coffee"), addCafeTextFields.get("offered kinds"),
+//                new Label("Kind of coffee"), addCafeTextFields.get("add new kind"), addNewKindButton);
+//        
+//        addSpecialOfVBox.getChildren().addAll(new Label("Special offers"), addCafeTextFields.get("special offers"),
+//                new Label("Special offer"), addCafeTextFields.get("add new special"), addNewSpecialButton);
+//       
+//        offersHBox.getChildren().addAll(addKindsVBox, addSpecialOfVBox);
+//        offersHBox.setSpacing(150);
         
         Button registerButton = new Button("Register cafe");
         registerButton.setPrefWidth(620);
         registerButton.setPrefHeight(50);
         
         registerButton.setOnAction((ActionEvent) -> {
-        
+            if(!addCafeTextFields.get("name").getText().isEmpty() && 
+                    !addCafeTextFields.get("country").getText().isEmpty() &&
+                    !addCafeTextFields.get("city").getText().isEmpty() &&
+                    !addCafeTextFields.get("city").getText().isEmpty())
+            {
+                system.createCafe(addCafeTextFields.get("name").getText(),
+                   addCafeTextFields.get("country").getText(),
+                   addCafeTextFields.get("city").getText(),
+                   addCafeTextFields.get("street").getText());
+            }
         });
-        root.getChildren().addAll(new Label("Add cafe"), nameHBox, new Label("Location"), locationHBox, offersHBox, 
+        root.getChildren().addAll(new Label("Add cafe"), nameHBox, new Label("Location"), locationHBox, 
                 registerButton);
         root.setAlignment(Pos.TOP_CENTER);
         root.setSpacing(5);
@@ -837,7 +850,13 @@ public class Main extends Application {
         findUserButton.setPrefHeight(40);
         
         findUserButton.setOnAction((ActionEvent) -> {
-        
+            selectedUser = system.searchForUser(findUserTextFields.get("e-mail").getText());
+            editUserAdminTextFields.get("e-mail").setText(selectedUser.getEmail());
+            editUserAdminTextFields.get("name").setText(selectedUser.getName());
+            editUserAdminTextFields.get("surname").setText(selectedUser.getSurname());
+            switchToAdminEdit();
+            System.out.println(selectedUser.getEmail()); //debug
+            System.out.println(selectedUser.getId());
         });
         
         HBox detailsHBox = new HBox();
@@ -849,8 +868,7 @@ public class Main extends Application {
                 new Label("Surname"));
         labelsVBox.setSpacing(10);
         
-        textFieldsVBox.getChildren().addAll(findUserTextFields.get("e-mail"),findUserTextFields.get("name"),
-                findUserTextFields.get("surname"));
+        textFieldsVBox.getChildren().add(findUserTextFields.get("e-mail"));
         
         detailsHBox.getChildren().addAll(labelsVBox, textFieldsVBox);
         
@@ -858,7 +876,11 @@ public class Main extends Application {
         root.setSpacing(5);
         return new Scene(root, 640, 200);
     }
-
+    
+    private void switchToAdminEdit()
+    {
+        stage.setScene(editUserAdmin);
+    }
     
     /**
      * Create screen for editing a user's own profile.
@@ -880,7 +902,8 @@ public class Main extends Application {
                         editUserTextFields.get("surname").getText(),
                         editUserTextFields.get("e-mail").getText(),
                         editUserTextFields.get("password").getText(),
-                        system.getLoggedInUser().getId());
+                        system.getLoggedInUser().getId(),
+                        false, false);
                 switchToHomeScreen();
             }
         });
@@ -914,8 +937,18 @@ public class Main extends Application {
         editUserButton.setPrefWidth(620);
         editUserButton.setPrefHeight(40);
         
-        editUserButton.setOnAction((ActionEvent) -> {
+        CheckBox banUserCheckBox = new CheckBox("Ban user");
         
+        
+        editUserButton.setOnAction((ActionEvent) -> {
+            system.changeUserDetail(editUserAdminTextFields.get("name").getText(),
+                    editUserAdminTextFields.get("surname").getText(),
+                    editUserAdminTextFields.get("e-mail").getText(), 
+                    selectedUser.getPassword(),
+                    selectedUser.getId(),
+                    false,
+                    banUserCheckBox.selectedProperty().get());
+            switchToHomeScreen();
         });
         
         HBox detailsHBox = new HBox();
@@ -923,8 +956,7 @@ public class Main extends Application {
                 
         VBox textFieldsVBox = new VBox();
         VBox labelsVBox = new VBox();
-        CheckBox banUserCheckBox = new CheckBox("Ban user");
-        
+
         
         labelsVBox.getChildren().addAll(new Label("E-mail"), new Label("Name"),
                 new Label("Surname"), banUserCheckBox);
@@ -939,7 +971,7 @@ public class Main extends Application {
         root.setSpacing(5);
         return new Scene(root, 640, 200);
     
-    }
+    };
     
     
     /**

@@ -18,8 +18,8 @@ import java.util.Set;
 public class InformationSystem {
     private static final String DB_DRIVER = "com.mysql.jdbc.Driver";
     private static final String DB_CONNECTION = "jdbc:mysql://localhost:3306/?useSSL=false";
-    private static final String DB_USER = "4IT115";
-    private static final String DB_PASSWORD = "4IT115-project";
+    private static final String DB_USER = "root";
+    private static final String DB_PASSWORD = "admin";
     
     private static final String DB = "4it115";
     private static final String SQL_CREATE_USER = "insert into " + DB + ".users\n"
@@ -28,6 +28,9 @@ public class InformationSystem {
     private static final String SQL_CHECK_ACCOUNT = "select email\n"
             + "from " + DB + ".users\n"
             + "where email like ?;";
+    private static final String SQL_CHECK_CAFE = "select cafe_name\n"
+            + "from " + DB + ".cafe\n"
+            + "where cafe_name like ?;";
     private static final String SQL_CHECK_COFFEE = "select *\n"
             + "from " + DB + ".coffee\n"
             + "where coffee_name like ?\n"
@@ -109,8 +112,13 @@ public class InformationSystem {
             "admin = ?,\n" +
             "banned = ?\n" +
             "where user_id = ?;";
-
+    private static final String SQL_SEARCH_USER = "select * from " + DB + ".users\n"+
+            "where email = ?;";
    
+    private static final String SQL_ADD_CAFE = "insert into " + DB + ".cafe\n" +
+            "(CAFE_NAME,COUNTRY,CITY,STREET,ACTIVE,ADMIN_ID)\n" +
+            "values (?,?,?,?,?,?);";
+    
     private User loggedInUser = null;
     
     private final Collection<Cafe> cafes = new ArrayList<>();
@@ -147,6 +155,36 @@ public class InformationSystem {
                 statement.setString(i++, password);
                 statement.setBoolean(i++, false);
                 statement.setBoolean(i++, false);
+                int updatedRecords = statement.executeUpdate();
+                if(updatedRecords == 1)
+                    result = true;
+            }
+            statement.close();
+            connection.close();
+        }
+        catch(SQLException | ClassNotFoundException ex){
+            ex.printStackTrace();
+        }
+        finally{
+            return result;
+        }
+    }
+    
+        public boolean createCafe(String name,String country,String city,String street){
+        Connection connection;
+        PreparedStatement statement = null;
+        boolean result = false;
+        try {
+            Class.forName(DB_DRIVER);
+            connection = DriverManager.getConnection(DB_CONNECTION, DB_USER, DB_PASSWORD);
+            if(!cafeExists(connection, name)){
+                statement = connection.prepareStatement(SQL_ADD_CAFE);
+                statement.setString(1, name);
+                statement.setString(2, country);
+                statement.setString(3, city);
+                statement.setString(4, street);
+                statement.setBoolean(5, false);
+                statement.setInt(6, 1);
                 int updatedRecords = statement.executeUpdate();
                 if(updatedRecords == 1)
                     result = true;
@@ -241,6 +279,14 @@ public class InformationSystem {
                                             String email) throws SQLException{
             statement = connection.prepareStatement(SQL_CHECK_ACCOUNT);
             statement.setString(1, email);
+            return statement.executeQuery().next();
+    }
+    
+    private boolean cafeExists(Connection connection, String cafeName) throws SQLException
+    {
+            PreparedStatement statement;
+            statement = connection.prepareStatement(SQL_CHECK_CAFE);
+            statement.setString(1, cafeName);
             return statement.executeQuery().next();
     }
 
@@ -517,6 +563,34 @@ public class InformationSystem {
         }
     }
     
+    public User searchForUser(String userMail)
+    {
+        PreparedStatement statement;
+        try
+        {
+            Connection connection = DriverManager.getConnection(DB_CONNECTION, DB_USER, DB_PASSWORD);
+            statement = connection.prepareStatement(SQL_SEARCH_USER);
+            statement.setString(1, userMail);
+            statement.execute();
+            ResultSet rs = statement.getResultSet();
+            rs.next();
+            boolean banned = rs.getInt("banned") == 1;
+            User temp = new User(rs.getInt("user_id"),
+                    rs.getString("email"), 
+                    rs.getString("user_name"), 
+                    rs.getString("user_surname"), 
+                    rs.getString("user_password"), 
+                    banned);
+            return temp;
+        }
+        catch(SQLException ex)
+        {
+            ex.printStackTrace();
+            return null;
+        }
+        
+    }
+    
     /**
      * Modify cafe's detail in the database.
      * @param cafe_name
@@ -564,9 +638,11 @@ public class InformationSystem {
      * @param email
      * @param user_password
      * @param uid
+     * @param admin
+     * @param banned
      * @return 
      */
-    public boolean changeUserDetail(String user_name,String user_surname,String email,String user_password, int uid){
+    public boolean changeUserDetail(String user_name,String user_surname,String email,String user_password, int uid, boolean admin, boolean banned){
         Connection connection;
         PreparedStatement statement;
         boolean result = false;
@@ -579,8 +655,8 @@ public class InformationSystem {
             statement.setString(i++, user_surname);
             statement.setString(i++, email);
             statement.setString(i++, user_password);
-            statement.setBoolean(i++, false);
-            statement.setBoolean(i++, false);
+            statement.setBoolean(i++, admin);
+            statement.setBoolean(i++, banned);
             statement.setInt(i++, uid);
             int updatedLines = statement.executeUpdate();
             if(updatedLines == 1)
