@@ -23,8 +23,8 @@ public class InformationSystem {
     
     private static final String DB = "4it115";
     private static final String SQL_CREATE_USER = "insert into " + DB + ".users\n"
-            + "(USER_NAME,USER_SURNAME,EMAIL,USER_PASSWORD,ADMIN)\n"
-            + "values (?,?,?,?,?);";
+            + "(USER_NAME,USER_SURNAME,EMAIL,USER_PASSWORD,ADMIN,BANNED)\n"
+            + "values (?,?,?,?,?,?);";
     private static final String SQL_CHECK_ACCOUNT = "select email\n"
             + "from " + DB + ".users\n"
             + "where email like ?;";
@@ -38,7 +38,7 @@ public class InformationSystem {
             + "and start_date = ?\n"
             + "and end_date = ?\n"
             + "and description like ?;";
-    private static final String SQL_LOGIN = "select user_id,email,user_name,user_surname,user_password,admin\n"
+    private static final String SQL_LOGIN = "select *\n"
             + "from " + DB + ".users\n"
             + "where email like ? and user_password like ?;";
     private static final String SQL_SEARCH = "select *\n" +
@@ -107,6 +107,7 @@ public class InformationSystem {
             "email = ?,\n" +
             "user_password = ?,\n" +
             "admin = ?,\n" +
+            "banned = ?\n" +
             "where user_id = ?;";
 
    
@@ -145,6 +146,7 @@ public class InformationSystem {
                 statement.setString(i++, email);
                 statement.setString(i++, password);
                 statement.setBoolean(i++, false);
+                statement.setBoolean(i++, false);
                 int updatedRecords = statement.executeUpdate();
                 if(updatedRecords == 1)
                     result = true;
@@ -168,29 +170,29 @@ public class InformationSystem {
      * @return 
      */
     public boolean rate(int user_id,int cafe_id,double stars){
-        Connection connection;
-        PreparedStatement statement = null;
         boolean result = false;
-        try {
-            Class.forName(DB_DRIVER);
-            connection = DriverManager.getConnection(DB_CONNECTION, DB_USER, DB_PASSWORD);
-            statement = connection.prepareStatement(SQL_ADD_RATING);
-            int i = 1;
-            statement.setInt(i++, user_id);
-            statement.setInt(i++, cafe_id);
-            statement.setDouble(i++, stars);
-            int updatedRecords = statement.executeUpdate();
-            if(updatedRecords == 1)
-                result = true;
-            statement.close();
-            connection.close();
+        if(!loggedInUser.isBanned()){
+            Connection connection;
+            PreparedStatement statement;
+            try {
+                Class.forName(DB_DRIVER);
+                connection = DriverManager.getConnection(DB_CONNECTION, DB_USER, DB_PASSWORD);
+                statement = connection.prepareStatement(SQL_ADD_RATING);
+                int i = 1;
+                statement.setInt(i++, user_id);
+                statement.setInt(i++, cafe_id);
+                statement.setDouble(i++, stars);
+                int updatedRecords = statement.executeUpdate();
+                if(updatedRecords == 1)
+                    result = true;
+                statement.close();
+                connection.close();
+            }
+            catch(SQLException | ClassNotFoundException ex){
+                ex.printStackTrace();
+            }
         }
-        catch(SQLException | ClassNotFoundException ex){
-            ex.printStackTrace();
-        }
-        finally{
-            return result;
-        }
+        return result;
     }
 
     /**
@@ -201,29 +203,29 @@ public class InformationSystem {
      * @return 
      */
     public boolean post(int user_id,int cafe_id,String post_text){
-        Connection connection;
-        PreparedStatement statement = null;
         boolean result = false;
-        try {
-            Class.forName(DB_DRIVER);
-            connection = DriverManager.getConnection(DB_CONNECTION, DB_USER, DB_PASSWORD);
-            statement = connection.prepareStatement(SQL_ADD_POST);
-            int i = 1;
-            statement.setInt(i++, user_id);
-            statement.setInt(i++, cafe_id);
-            statement.setString(i++, post_text);
-            int updatedRecords = statement.executeUpdate();
-            if(updatedRecords == 1)
-                result = true;
-            statement.close();
-            connection.close();
+        if(!loggedInUser.isBanned()){
+            Connection connection;
+            PreparedStatement statement;
+            try {
+                Class.forName(DB_DRIVER);
+                connection = DriverManager.getConnection(DB_CONNECTION, DB_USER, DB_PASSWORD);
+                statement = connection.prepareStatement(SQL_ADD_POST);
+                int i = 1;
+                statement.setInt(i++, user_id);
+                statement.setInt(i++, cafe_id);
+                statement.setString(i++, post_text);
+                int updatedRecords = statement.executeUpdate();
+                if(updatedRecords == 1)
+                    result = true;
+                statement.close();
+                connection.close();
+            }
+            catch(SQLException | ClassNotFoundException ex){
+                ex.printStackTrace();
+            }
         }
-        catch(SQLException | ClassNotFoundException ex){
-            ex.printStackTrace();
-        }
-        finally{
-            return result;
-        }
+        return result;
     }
     
     /**
@@ -397,9 +399,9 @@ public class InformationSystem {
             ResultSet rs = statement.executeQuery();
             if(rs.next()){
                 if(rs.getBoolean("admin"))
-                    loggedInUser = new Admin(rs.getInt("user_id"),rs.getString("email"),rs.getString("user_name"),rs.getString("user_surname"),rs.getString("user_password"));
+                    loggedInUser = new Admin(rs.getInt("user_id"),rs.getString("email"),rs.getString("user_name"),rs.getString("user_surname"),rs.getString("user_password"),rs.getBoolean("banned"));
                 else
-                    loggedInUser = new User(rs.getInt("user_id"),rs.getString("email"),rs.getString("user_name"),rs.getString("user_surname"),rs.getString("user_password"));
+                    loggedInUser = new User(rs.getInt("user_id"),rs.getString("email"),rs.getString("user_name"),rs.getString("user_surname"),rs.getString("user_password"),rs.getBoolean("banned"));
                 result = true;
             }
             statement.close();
@@ -467,7 +469,7 @@ public class InformationSystem {
                               rs.getString("country"),rs.getString("city"),
                               rs.getString("street"),rs.getBoolean("active"),
                               new Admin(rs.getInt("admin_id"),rs.getString("admin_email"), rs.getString("admin_name"),
-                                        rs.getString("admin_surname"), rs.getString("admin_password")));
+                                        rs.getString("admin_surname"), rs.getString("admin_password"),rs.getBoolean("banned")));
                     do{
                         final int offer_id = rs.getInt("offer_id");
                         if(!rs.wasNull() && !offerIDs.contains(offer_id)){
@@ -486,7 +488,7 @@ public class InformationSystem {
                         if(!rs.wasNull() && !ratingIDs.contains(rating_id)){
                             nextCafe.addRating(new Rating(rating_id,rs.getDouble("stars"),
                                                new User(rs.getInt("user_id"),rs.getString("email"), rs.getString("user_name"), 
-                                                        rs.getString("user_surname"), rs.getString("user_password")),
+                                                        rs.getString("user_surname"), rs.getString("user_password"),rs.getBoolean("banned")),
                                                nextCafe));
                             ratingIDs.add(rating_id);
                         }
@@ -494,7 +496,7 @@ public class InformationSystem {
                         if(!rs.wasNull() && !postIDs.contains(post_id)){
                             nextCafe.addPost(  new Post(post_id,rs.getString("post_text"),
                                                new User(rs.getInt("user_id"),rs.getString("email"), rs.getString("user_name"), 
-                                                        rs.getString("user_surname"), rs.getString("user_password")),
+                                                        rs.getString("user_surname"), rs.getString("user_password"),rs.getBoolean("banned")),
                                                nextCafe));
                             postIDs.add(rating_id);
                         }
@@ -578,7 +580,8 @@ public class InformationSystem {
             statement.setString(i++, email);
             statement.setString(i++, user_password);
             statement.setBoolean(i++, false);
-            statement.setInt(i++, uid);  
+            statement.setBoolean(i++, false);
+            statement.setInt(i++, uid);
             int updatedLines = statement.executeUpdate();
             if(updatedLines == 1)
                 result = true;

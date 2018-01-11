@@ -376,7 +376,10 @@ public class Main extends Application {
                 logout = new Button("Log out"),
                 search = new Button("Request search results");
         editProfile.setOnAction((ActionEvent) -> {
-            
+            editUserTextFields.get("name").setText(system.getLoggedInUser().getName());
+            editUserTextFields.get("surname").setText(system.getLoggedInUser().getSurname());
+            editUserTextFields.get("e-mail").setText(system.getLoggedInUser().getEmail());
+            stage.setScene(editUser);
         });
         logout.setOnAction((ActionEvent) -> {
             system.logout();
@@ -421,7 +424,7 @@ public class Main extends Application {
                 logout = new Button("Log out"),
                 search = new Button("Request search results");
         editUser.setOnAction((ActionEvent) -> {
-            
+            stage.setScene(findUser);
         });
         logout.setOnAction((ActionEvent) -> {
             system.logout();
@@ -868,14 +871,14 @@ public class Main extends Application {
         editUserButton.setPrefHeight(40);
         
         editUserButton.setOnAction((ActionEvent) -> {
-            if(!editUserTextFields.get("email").getText().isEmpty() &&
-               !changeCafeDetailTextFields.get("name").getText().isEmpty() &&
-               !changeCafeDetailTextFields.get("surname").getText().isEmpty() &&
-               !changeCafeDetailTextFields.get("password").getText().isEmpty()
+            if(!editUserTextFields.get("e-mail").getText().isEmpty() &&
+               !editUserTextFields.get("name").getText().isEmpty() &&
+               !editUserTextFields.get("surname").getText().isEmpty() &&
+               !editUserTextFields.get("password").getText().isEmpty()
                     && system.getLoggedInUser() != null){
                 system.changeUserDetail(editUserTextFields.get("name").getText(),
                         editUserTextFields.get("surname").getText(),
-                        editUserTextFields.get("email").getText(),
+                        editUserTextFields.get("e-mail").getText(),
                         editUserTextFields.get("password").getText(),
                         system.getLoggedInUser().getId());
                 switchToHomeScreen();

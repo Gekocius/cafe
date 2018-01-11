@@ -20,8 +20,8 @@ public class Admin extends User {
      * @param surname
      * @param password 
      */
-    public Admin(int id,String email,String name,String surname,String password){
-        super(id,email,name,surname,password);
+    public Admin(int id,String email,String name,String surname,String password,boolean banned){
+        super(id,email,name,surname,password,banned);
     }
 
     /**
