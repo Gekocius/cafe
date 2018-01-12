@@ -672,28 +672,6 @@ public class Main extends Application {
         
         locationHBox.getChildren().addAll(labelsLocationVBox, textFieldsVBox);
         locationHBox.setSpacing(100);
-//        
-//        HBox offersHBox = new HBox();
-//        VBox addKindsVBox = new VBox();
-//        VBox addSpecialOfVBox = new VBox();
-//        Button addNewKindButton = new Button("Add new kind of coffee");
-//        Button addNewSpecialButton = new Button("Add new special offer");
-//          
-//        addNewKindButton.setOnAction((ActionEvent) -> {
-//        
-//        });
-//        addNewSpecialButton.setOnAction((ActionEvent) -> {
-//        
-//        });
-//            
-//        addKindsVBox.getChildren().addAll(new Label("Offered kinds of coffee"), addCafeTextFields.get("offered kinds"),
-//                new Label("Kind of coffee"), addCafeTextFields.get("add new kind"), addNewKindButton);
-//        
-//        addSpecialOfVBox.getChildren().addAll(new Label("Special offers"), addCafeTextFields.get("special offers"),
-//                new Label("Special offer"), addCafeTextFields.get("add new special"), addNewSpecialButton);
-//       
-//        offersHBox.getChildren().addAll(addKindsVBox, addSpecialOfVBox);
-//        offersHBox.setSpacing(150);
         
         Button registerButton = new Button("Register cafe");
         registerButton.setPrefWidth(620);
@@ -855,8 +833,6 @@ public class Main extends Application {
             editUserAdminTextFields.get("name").setText(selectedUser.getName());
             editUserAdminTextFields.get("surname").setText(selectedUser.getSurname());
             switchToAdminEdit();
-            System.out.println(selectedUser.getEmail()); //debug
-            System.out.println(selectedUser.getId());
         });
         
         HBox detailsHBox = new HBox();
